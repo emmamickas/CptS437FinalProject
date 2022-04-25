@@ -3812,6 +3812,9 @@ def PredictBasedOnOpenness(file_out, allsampledataset, allsampledatasettotals, a
 
 def main():
 
+    file_out = open("debugfile.txt", "w")
+    file_out.close()
+    
     #Shrinker() Used for shrinking to predetermined values used while testing
     dataset, trainingdataset, testdataset = ReadInData()
     print("Dataset:\n", dataset)
@@ -3862,13 +3865,11 @@ def main():
     cleandataset = CleanDataPart1(dataset)
     cleandatasettotals = CalculateCleanedTotals(cleandataset)
 
-    file_out = open("debugfile.txt", "w")
 
     print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
     PredictBasedOnAgreeableness(file_out, cleandataset_training, cleandatasettotals_training, cleaneddatasetpreferences_training, cleandataset_testing, cleandatasettotals_testing, cleaneddatasetpreferences_testing)
 
-    file_out.close()
 
     return
 
