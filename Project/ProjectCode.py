@@ -1788,7 +1788,6 @@ def PredictBasedOnExtroversion(file_out, alltrainingdatasetquestions, alltrainin
     testconscientiousnesscorrectlabels = alltestingdatasetpreferences[:,3] # Select preferences for conscientiousness corresponding to columns
     testopennesscorrectlabels = alltestingdatasetpreferences[:,4] # Select preferences for openness corresponding to columns
 
-
     # NEUROTICISM
     neuroticismclf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
     neuroticismclf_percept3.fit(extroversionquestions, neuroticismcorrectlabels, sample_weight=None)
@@ -2662,12 +2661,16 @@ def PredictBasedOnNeuroticism(file_out, allsampledataset, allsampledatasettotals
 def PredictBasedOnAgreeableness(file_out, allsampledataset, allsampledatasettotals, allsampledatasetpreferences, alltestdataset, alltestdatasettotals, alltestdatasetpreferences):
 
     agreeablenessquestions = allsampledataset[:,20:30] # Select agreeableness question columns
+    reducedagreeablenessquestionindeces = PerceptronForPruningMultiplePredictions(allsampledataset, allsampledatasetpreferences, (20, 30), [0, 1, 3, 4], 5, 1, 3)
+    reducedagreeablenessquestions = agreeablenessquestions[:,reducedagreeablenessquestionindeces]
+
     extroversioncorrectlabels = allsampledatasetpreferences[:,0] # Select preferences for extroversion corresponding to columns
     neuroticismcorrectlabels = allsampledatasetpreferences[:,1] # Select preferences for neuroticism corresponding to columns
     conscientiousnesscorrectlabels = allsampledatasetpreferences[:,3] # Select preferences for conscientiousness corresponding to columns
     opennesscorrectlabels = allsampledatasetpreferences[:,4] # Select preferences for openness corresponding to columns
     
     testagreeablenessquestions = alltestdataset[:,20:30] # Select agreeableness question columns
+    testreducedagreeablenessquestions = testagreeablenessquestions[:,reducedagreeablenessquestionindeces]
     testextroversioncorrectlabels = alltestdatasetpreferences[:,0] # Select preferences for extroversion corresponding to columns
     testneuroticismcorrectlabels = alltestdatasetpreferences[:,1] # Select preferences for neuroticism corresponding to columns
     testconscientiousnesscorrectlabels = alltestdatasetpreferences[:,3] # Select preferences for conscientiousness corresponding to columns
@@ -2694,46 +2697,90 @@ def PredictBasedOnAgreeableness(file_out, allsampledataset, allsampledatasettota
     extroversiondecisiontreepredictions = extroversionclf_decisiontree.predict(agreeablenessquestions)
     extroversiondecisiontreetestpredictions = extroversionclf_decisiontree.predict(testagreeablenessquestions)
 
+    extroversionclf_percept3_reducedquestions = Perceptron(max_iter=20, random_state=0, eta0=1)
+    extroversionclf_percept3_reducedquestions.fit(reducedagreeablenessquestions, extroversioncorrectlabels, sample_weight=None)
+    extroversionquestionpredictions_reducedquestions = extroversionclf_percept3_reducedquestions.predict(reducedagreeablenessquestions)
+    testextroversionquestionpredictions_reducedquestions = extroversionclf_percept3_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    extroversionclf_sgd_reducedquestions = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    extroversionclf_sgd_reducedquestions.fit(reducedagreeablenessquestions, extroversioncorrectlabels)
+    extroversionsgdpredictions_reducedquestions = extroversionclf_sgd_reducedquestions.predict(reducedagreeablenessquestions)
+    extroversionsgdtestpredictions_reducedquestions = extroversionclf_sgd_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    extroversionclf_logistic_reducedquestions = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    extroversionclf_logistic_reducedquestions.fit(reducedagreeablenessquestions, extroversioncorrectlabels)
+    extroversionlogisticpredictions_reducedquestions = extroversionclf_logistic_reducedquestions.predict(reducedagreeablenessquestions)
+    extroversionlogistictestpredictions_reducedquestions = extroversionclf_logistic_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    extroversionclf_decisiontree_reducedquestions = DecisionTreeClassifier(max_depth=20)
+    extroversionclf_decisiontree_reducedquestions.fit(reducedagreeablenessquestions, extroversioncorrectlabels)
+    extroversiondecisiontreepredictions_reducedquestions = extroversionclf_decisiontree_reducedquestions.predict(reducedagreeablenessquestions)
+    extroversiondecisiontreetestpredictions_reducedquestions = extroversionclf_decisiontree_reducedquestions.predict(testreducedagreeablenessquestions)
+
     # Evaluation
     extroversion_perceptron_training_accuracy = metrics.accuracy_score(extroversioncorrectlabels, extroversionquestionpredictions)
+    extroversion_perceptron_training_accuracy_reducedquestions = metrics.accuracy_score(extroversioncorrectlabels, extroversionquestionpredictions_reducedquestions)
 
     print("Able to predict extroversion based on agreeableness training questions using perceptron with %{} accuracy".format(extroversion_perceptron_training_accuracy))
     print("Able to predict extroversion based on agreeableness training questions using perceptron with %{} accuracy".format(extroversion_perceptron_training_accuracy), file=file_out)
+    print("Able to predict extroversion based on agreeableness training reduced questions using perceptron with %{} accuracy".format(extroversion_perceptron_training_accuracy_reducedquestions))
+    print("Able to predict extroversion based on agreeableness training reduced questions using perceptron with %{} accuracy".format(extroversion_perceptron_training_accuracy_reducedquestions), file=file_out)
 
     extroversion_perceptron_testing_accuracy = metrics.accuracy_score(testextroversioncorrectlabels, testextroversionquestionpredictions)
+    extroversion_perceptron_testing_accuracy_reducedquestions = metrics.accuracy_score(testextroversioncorrectlabels, testextroversionquestionpredictions_reducedquestions)
 
     print("Able to predict extroversion based on agreeableness testing questions using perceptron with %{} accuracy".format(extroversion_perceptron_testing_accuracy))
     print("Able to predict extroversion based on agreeableness testing questions using perceptron with %{} accuracy".format(extroversion_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on agreeableness testing reduced questions using perceptron with %{} accuracy".format(extroversion_perceptron_testing_accuracy_reducedquestions))
+    print("Able to predict extroversion based on agreeableness testing reduced questions using perceptron with %{} accuracy".format(extroversion_perceptron_testing_accuracy_reducedquestions), file=file_out)
 
     extroversion_sgd_training_accuracy = metrics.accuracy_score(extroversioncorrectlabels, extroversionsgdpredictions)
+    extroversion_sgd_training_accuracy_reducedquestions = metrics.accuracy_score(extroversioncorrectlabels, extroversionsgdpredictions_reducedquestions)
 
     print("Able to predict extroversion based on agreeableness training questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_training_accuracy))
     print("Able to predict extroversion based on agreeableness training questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_training_accuracy), file=file_out)
+    print("Able to predict extroversion based on agreeableness training reduced questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_training_accuracy_reducedquestions))
+    print("Able to predict extroversion based on agreeableness training reduced questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_training_accuracy_reducedquestions), file=file_out)
 
     extroversion_sgd_testing_accuracy = metrics.accuracy_score(testextroversioncorrectlabels, extroversionsgdtestpredictions)
+    extroversion_sgd_testing_accuracy_reducedquestions = metrics.accuracy_score(testextroversioncorrectlabels, extroversionsgdtestpredictions_reducedquestions)
 
     print("Able to predict extroversion based on agreeableness testing questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_testing_accuracy))
     print("Able to predict extroversion based on agreeableness testing questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on agreeableness testing reduced questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_testing_accuracy_reducedquestions))
+    print("Able to predict extroversion based on agreeableness testing reduced questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_testing_accuracy_reducedquestions), file=file_out)
 
     extroversion_logistic_training_accuracy = metrics.accuracy_score(extroversioncorrectlabels, extroversionlogisticpredictions)
+    extroversion_logistic_training_accuracy_reducedquestions = metrics.accuracy_score(extroversioncorrectlabels, extroversionlogisticpredictions_reducedquestions)
 
     print("Able to predict extroversion based on agreeableness training questions using logistic with %{} accuracy".format(extroversion_logistic_training_accuracy))
     print("Able to predict extroversion based on agreeableness training questions using logistic with %{} accuracy".format(extroversion_logistic_training_accuracy), file=file_out)
+    print("Able to predict extroversion based on agreeableness training reduced questions using logistic with %{} accuracy".format(extroversion_logistic_training_accuracy_reducedquestions))
+    print("Able to predict extroversion based on agreeableness training reduced questions using logistic with %{} accuracy".format(extroversion_logistic_training_accuracy_reducedquestions), file=file_out)
 
     extroversion_logistic_testing_accuracy = metrics.accuracy_score(testextroversioncorrectlabels, extroversionlogistictestpredictions)
+    extroversion_logistic_testing_accuracy_reducedquestions = metrics.accuracy_score(testextroversioncorrectlabels, extroversionlogistictestpredictions_reducedquestions)
 
     print("Able to predict extroversion based on agreeableness testing questions using logistic with %{} accuracy".format(extroversion_logistic_testing_accuracy))
     print("Able to predict extroversion based on agreeableness testing questions using logistic with %{} accuracy".format(extroversion_logistic_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on agreeableness testing reduced questions using logistic with %{} accuracy".format(extroversion_logistic_testing_accuracy_reducedquestions))
+    print("Able to predict extroversion based on agreeableness testing reduced questions using logistic with %{} accuracy".format(extroversion_logistic_testing_accuracy_reducedquestions), file=file_out)
 
     extroversion_dt_training_accuracy = metrics.accuracy_score(extroversioncorrectlabels, extroversiondecisiontreepredictions)
+    extroversion_dt_training_accuracy_reducedquestions = metrics.accuracy_score(extroversioncorrectlabels, extroversiondecisiontreepredictions_reducedquestions)
 
     print("Able to predict extroversion based on agreeableness training questions using decision tree with %{} accuracy".format(extroversion_dt_training_accuracy))
     print("Able to predict extroversion based on agreeableness training questions using decision tree with %{} accuracy".format(extroversion_dt_training_accuracy), file=file_out)
+    print("Able to predict extroversion based on agreeableness training reduced questions using decision tree with %{} accuracy".format(extroversion_dt_training_accuracy_reducedquestions))
+    print("Able to predict extroversion based on agreeableness training reduced questions using decision tree with %{} accuracy".format(extroversion_dt_training_accuracy_reducedquestions), file=file_out)
 
     extroversion_dt_testing_accuracy = metrics.accuracy_score(testextroversioncorrectlabels, extroversiondecisiontreetestpredictions)
+    extroversion_dt_testing_accuracy_reducedquestions = metrics.accuracy_score(testextroversioncorrectlabels, extroversiondecisiontreetestpredictions_reducedquestions)
 
     print("Able to predict extroversion based on agreeableness testing questions using decision tree with %{} accuracy".format(extroversion_dt_testing_accuracy))
     print("Able to predict extroversion based on agreeableness testing questions using decision tree with %{} accuracy".format(extroversion_dt_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on agreeableness testing reduced questions using decision tree with %{} accuracy".format(extroversion_dt_testing_accuracy_reducedquestions))
+    print("Able to predict extroversion based on agreeableness testing reduced questions using decision tree with %{} accuracy".format(extroversion_dt_testing_accuracy_reducedquestions), file=file_out)
 
     # NEUROTICISM
     neuroticismclf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
@@ -2756,46 +2803,90 @@ def PredictBasedOnAgreeableness(file_out, allsampledataset, allsampledatasettota
     neuroticismdecisiontreepredictions = neuroticismclf_decisiontree.predict(agreeablenessquestions)
     neuroticismdecisiontreetestpredictions = neuroticismclf_decisiontree.predict(testagreeablenessquestions)
 
+    neuroticismclf_percept3_reducedquestions = Perceptron(max_iter=20, random_state=0, eta0=1)
+    neuroticismclf_percept3_reducedquestions.fit(reducedagreeablenessquestions, neuroticismcorrectlabels, sample_weight=None)
+    neuroticismquestionpredictions_reducedquestions = neuroticismclf_percept3_reducedquestions.predict(reducedagreeablenessquestions)
+    testneuroticismquestionpredictions_reducedquestions = neuroticismclf_percept3_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    neuroticismclf_sgd_reducedquestions = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    neuroticismclf_sgd_reducedquestions.fit(reducedagreeablenessquestions, neuroticismcorrectlabels)
+    neuroticismsgdpredictions_reducedquestions = neuroticismclf_sgd_reducedquestions.predict(reducedagreeablenessquestions)
+    neuroticismsgdtestpredictions_reducedquestions = neuroticismclf_sgd_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    neuroticismclf_logistic_reducedquestions = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    neuroticismclf_logistic_reducedquestions.fit(reducedagreeablenessquestions, neuroticismcorrectlabels)
+    neuroticismlogisticpredictions_reducedquestions = neuroticismclf_logistic_reducedquestions.predict(reducedagreeablenessquestions)
+    neuroticismlogistictestpredictions_reducedquestions = neuroticismclf_logistic_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    neuroticismclf_decisiontree_reducedquestions = DecisionTreeClassifier(max_depth=20)
+    neuroticismclf_decisiontree_reducedquestions.fit(reducedagreeablenessquestions, neuroticismcorrectlabels)
+    neuroticismdecisiontreepredictions_reducedquestions = neuroticismclf_decisiontree_reducedquestions.predict(reducedagreeablenessquestions)
+    neuroticismdecisiontreetestpredictions_reducedquestions = neuroticismclf_decisiontree_reducedquestions.predict(testreducedagreeablenessquestions)
+
     # Evaluation
     neuroticism_perceptron_training_accuracy = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismquestionpredictions)
+    neuroticicm_perceptron_training_accuracy_reducedquestions = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismquestionpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on agreeableness training questions using perceptron with %{} accuracy".format(neuroticism_perceptron_training_accuracy))
     print("Able to predict neuroticism based on agreeableness training questions using perceptron with %{} accuracy".format(neuroticism_perceptron_training_accuracy), file=file_out)
+    print("Able to predict neuroticism based on agreeableness training reduced questions using perceptron with %{} accuracy".format(neuroticicm_perceptron_training_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on agreeableness training reduced questions using perceptron with %{} accuracy".format(neuroticicm_perceptron_training_accuracy_reducedquestions), file=file_out)
 
     neuroticism_perceptron_testing_accuracy = metrics.accuracy_score(testneuroticismcorrectlabels, testneuroticismquestionpredictions)
+    neuroticicm_perceptron_testing_accuracy_reducedquestions = metrics.accuracy_score(testneuroticismcorrectlabels, testneuroticismquestionpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on agreeableness testing questions using perceptron with %{} accuracy".format(neuroticism_perceptron_testing_accuracy))
     print("Able to predict neuroticism based on agreeableness testing questions using perceptron with %{} accuracy".format(neuroticism_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on agreeableness testing reduced questions using perceptron with %{} accuracy".format(neuroticicm_perceptron_testing_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on agreeableness testing reduced questions using perceptron with %{} accuracy".format(neuroticicm_perceptron_testing_accuracy_reducedquestions), file=file_out)
 
     neuroticism_sgd_training_accuracy = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismsgdpredictions)
+    neuroticicm_sgd_training_accuracy_reducedquestions = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismsgdpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on agreeableness training questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_training_accuracy))
     print("Able to predict neuroticism based on agreeableness training questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_training_accuracy), file=file_out)
+    print("Able to predict neuroticism based on agreeableness training reduced questions using stochastic gradient descent with %{} accuracy".format(neuroticicm_sgd_training_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on agreeableness training reduced questions using stochastic gradient descent with %{} accuracy".format(neuroticicm_sgd_training_accuracy_reducedquestions), file=file_out)
 
     neuroticism_sgd_testing_accuracy = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismsgdtestpredictions)
+    neuroticism_sgd_testing_accuracy_reducedquestions = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismsgdtestpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on agreeableness testing questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_testing_accuracy))
     print("Able to predict neuroticism based on agreeableness testing questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on agreeableness testing reduced questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_testing_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on agreeableness testing reduced questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_testing_accuracy_reducedquestions), file=file_out)
 
     neuroticism_logistic_training_accuracy = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismlogisticpredictions)
+    neuroticicm_logistic_training_accuracy_reducedquestions = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismlogisticpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on agreeableness training questions using logistic with %{} accuracy".format(neuroticism_logistic_training_accuracy))
     print("Able to predict neuroticism based on agreeableness training questions using logistic with %{} accuracy".format(neuroticism_logistic_training_accuracy), file=file_out)
+    print("Able to predict neuroticism based on agreeableness training reduced questions using logistic with %{} accuracy".format(neuroticicm_logistic_training_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on agreeableness training reduced questions using logistic with %{} accuracy".format(neuroticicm_logistic_training_accuracy_reducedquestions), file=file_out)
 
     neuroticism_logistic_testing_accuracy = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismlogistictestpredictions)
+    neuroticism_logistic_testing_accuracy_reducedquestions = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismlogistictestpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on agreeableness testing questions using logistic with %{} accuracy".format(neuroticism_logistic_testing_accuracy))
     print("Able to predict neuroticism based on agreeableness testing questions using logistic with %{} accuracy".format(neuroticism_logistic_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on agreeableness testing reduced questions using logistic with %{} accuracy".format(neuroticism_logistic_testing_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on agreeableness testing reduced questions using logistic with %{} accuracy".format(neuroticism_logistic_testing_accuracy_reducedquestions), file=file_out)
 
     neuroticism_dt_training_accuracy = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismdecisiontreepredictions)
+    neuroticicm_dt_training_accuracy_reducedquestions = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismdecisiontreepredictions_reducedquestions)
 
     print("Able to predict neuroticism based on agreeableness training questions using decision tree with %{} accuracy".format(neuroticism_dt_training_accuracy))
     print("Able to predict neuroticism based on agreeableness training questions using decision tree with %{} accuracy".format(neuroticism_dt_training_accuracy), file=file_out)
+    print("Able to predict neuroticism based on agreeableness training reduced questions using decision tree with %{} accuracy".format(neuroticicm_dt_training_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on agreeableness training reduced questions using decision tree with %{} accuracy".format(neuroticicm_dt_training_accuracy_reducedquestions), file=file_out)
 
     neuroticism_dt_testing_accuracy = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismdecisiontreetestpredictions)
+    neuroticism_dt_testing_accuracy_reducedquestions = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismdecisiontreetestpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on agreeableness testing questions using decision tree with %{} accuracy".format(neuroticism_dt_testing_accuracy))
     print("Able to predict neuroticism based on agreeableness testing questions using decision tree with %{} accuracy".format(neuroticism_dt_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on agreeableness testing reduced questions using decision tree with %{} accuracy".format(neuroticism_dt_testing_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on agreeableness testing reduced questions using decision tree with %{} accuracy".format(neuroticism_dt_testing_accuracy_reducedquestions), file=file_out)
 
     #CONSCIENTIOUSNESS
     conscientiousnessclf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
@@ -2818,46 +2909,90 @@ def PredictBasedOnAgreeableness(file_out, allsampledataset, allsampledatasettota
     conscientiousnessdecisiontreepredictions = conscientiousnessclf_decisiontree.predict(agreeablenessquestions)
     conscientiousnessdecisiontreetestpredictions = conscientiousnessclf_decisiontree.predict(testagreeablenessquestions)
 
+    conscientiousnessclf_percept3_reducedquestions = Perceptron(max_iter=20, random_state=0, eta0=1)
+    conscientiousnessclf_percept3_reducedquestions.fit(reducedagreeablenessquestions, conscientiousnesscorrectlabels, sample_weight=None)
+    conscientiousnessquestionpredictions_reducedquestions = conscientiousnessclf_percept3_reducedquestions.predict(reducedagreeablenessquestions)
+    testconscientiousnessquestionpredictions_reducedquestions = conscientiousnessclf_percept3_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    conscientiousnessclf_sgd_reducedquestions = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    conscientiousnessclf_sgd_reducedquestions.fit(reducedagreeablenessquestions, conscientiousnesscorrectlabels)
+    conscientiousnesssgdpredictions_reducedquestions = conscientiousnessclf_sgd_reducedquestions.predict(reducedagreeablenessquestions)
+    conscientiousnesssgdtestpredictions_reducedquestions = conscientiousnessclf_sgd_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    conscientiousnessclf_logistic_reducedquestions = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    conscientiousnessclf_logistic_reducedquestions.fit(reducedagreeablenessquestions, conscientiousnesscorrectlabels)
+    conscientiousnesslogisticpredictions_reducedquestions = conscientiousnessclf_logistic_reducedquestions.predict(reducedagreeablenessquestions)
+    conscientiousnesslogistictestpredictions_reducedquestions = conscientiousnessclf_logistic_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    conscientiousnessclf_decisiontree_reducedquestions = DecisionTreeClassifier(max_depth=20)
+    conscientiousnessclf_decisiontree_reducedquestions.fit(reducedagreeablenessquestions, conscientiousnesscorrectlabels)
+    conscientiousnessdecisiontreepredictions_reducedquestions = conscientiousnessclf_decisiontree_reducedquestions.predict(reducedagreeablenessquestions)
+    conscientiousnessdecisiontreetestpredictions_reducedquestions = conscientiousnessclf_decisiontree_reducedquestions.predict(testreducedagreeablenessquestions)
+
     # Evaluation
     conscientiousness_perceptron_training_accuracy = metrics.accuracy_score(conscientiousnesscorrectlabels, conscientiousnessquestionpredictions)
+    conscientiousness_perceptron_training_accuracy_reducedquestions = metrics.accuracy_score(conscientiousnesscorrectlabels, conscientiousnessquestionpredictions_reducedquestions)
 
     print("Able to predict conscientiousness based on agreeableness training questions using perceptron with %{} accuracy".format(conscientiousness_perceptron_training_accuracy))
     print("Able to predict conscientiousness based on agreeableness training questions using perceptron with %{} accuracy".format(conscientiousness_perceptron_training_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on agreeableness training reduced questions using perceptron with %{} accuracy".format(conscientiousness_perceptron_training_accuracy_reducedquestions))
+    print("Able to predict conscientiousness based on agreeableness training reduced questions using perceptron with %{} accuracy".format(conscientiousness_perceptron_training_accuracy_reducedquestions), file=file_out)
 
     conscientiousness_perceptron_testing_accuracy = metrics.accuracy_score(testconscientiousnesscorrectlabels, testconscientiousnessquestionpredictions)
+    conscientiousness_perceptron_testing_accuracy_reducedquestions = metrics.accuracy_score(testconscientiousnesscorrectlabels, testconscientiousnessquestionpredictions_reducedquestions)
 
     print("Able to predict conscientiousness based on agreeableness testing questions using perceptron with %{} accuracy".format(conscientiousness_perceptron_testing_accuracy))
     print("Able to predict conscientiousness based on agreeableness testing questions using perceptron with %{} accuracy".format(conscientiousness_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on agreeableness testing reduced questions using perceptron with %{} accuracy".format(conscientiousness_perceptron_testing_accuracy_reducedquestions))
+    print("Able to predict conscientiousness based on agreeableness testing reduced questions using perceptron with %{} accuracy".format(conscientiousness_perceptron_testing_accuracy_reducedquestions), file=file_out)
 
     conscientiousness_sgd_training_accuracy = metrics.accuracy_score(conscientiousnesscorrectlabels, conscientiousnesssgdpredictions)
+    conscientiousness_sgd_training_accuracy_reducedquestions = metrics.accuracy_score(conscientiousnesscorrectlabels, conscientiousnesssgdpredictions_reducedquestions)
 
     print("Able to predict conscientiousness based on agreeableness training questions using stochastic gradient descent with %{} accuracy".format(conscientiousness_sgd_training_accuracy))
     print("Able to predict conscientiousness based on agreeableness training questions using stochastic gradient descent with %{} accuracy".format(conscientiousness_sgd_training_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on agreeableness training reduced questions using stochastic gradient descent with %{} accuracy".format(conscientiousness_sgd_training_accuracy_reducedquestions))
+    print("Able to predict conscientiousness based on agreeableness training reduced questions using stochastic gradient descent with %{} accuracy".format(conscientiousness_sgd_training_accuracy_reducedquestions), file=file_out)
 
     conscientiousness_sgd_testing_accuracy = metrics.accuracy_score(testconscientiousnesscorrectlabels, conscientiousnesssgdtestpredictions)
+    conscientiousness_sgd_testing_accuracy_reducedquestions = metrics.accuracy_score(testconscientiousnesscorrectlabels, conscientiousnesssgdtestpredictions_reducedquestions)
 
     print("Able to predict conscientiousness based on agreeableness testing questions using stochastic gradient descent with %{} accuracy".format(conscientiousness_sgd_testing_accuracy))
     print("Able to predict conscientiousness based on agreeableness testing questions using stochastic gradient descent with %{} accuracy".format(conscientiousness_sgd_testing_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on agreeableness testing reduced questions using stochastic gradient descent with %{} accuracy".format(conscientiousness_sgd_testing_accuracy_reducedquestions))
+    print("Able to predict conscientiousness based on agreeableness testing reduced questions using stochastic gradient descent with %{} accuracy".format(conscientiousness_sgd_testing_accuracy_reducedquestions), file=file_out)
 
     conscientiousness_logistic_training_accuracy = metrics.accuracy_score(conscientiousnesscorrectlabels, conscientiousnesslogisticpredictions)
+    conscientiousness_logistic_training_accuracy_reducedquestions = metrics.accuracy_score(conscientiousnesscorrectlabels, conscientiousnesslogisticpredictions_reducedquestions)
 
     print("Able to predict conscientiousness based on agreeableness training questions using logistic with %{} accuracy".format(conscientiousness_logistic_training_accuracy))
     print("Able to predict conscientiousness based on agreeableness training questions using logistic with %{} accuracy".format(conscientiousness_logistic_training_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on agreeableness training reduced questions using logistic with %{} accuracy".format(conscientiousness_logistic_training_accuracy_reducedquestions))
+    print("Able to predict conscientiousness based on agreeableness training reduced questions using logistic with %{} accuracy".format(conscientiousness_logistic_training_accuracy_reducedquestions), file=file_out)
 
     conscientiousness_logistic_testing_accuracy = metrics.accuracy_score(testconscientiousnesscorrectlabels, conscientiousnesslogistictestpredictions)
+    conscientiousness_logistic_testing_accuracy_reducedquestions = metrics.accuracy_score(testconscientiousnesscorrectlabels, conscientiousnesslogistictestpredictions_reducedquestions)
 
     print("Able to predict conscientiousness based on agreeableness testing questions using logistic with %{} accuracy".format(conscientiousness_logistic_testing_accuracy))
     print("Able to predict conscientiousness based on agreeableness testing questions using logistic with %{} accuracy".format(conscientiousness_logistic_testing_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on agreeableness testing reduced questions using logistic with %{} accuracy".format(conscientiousness_logistic_testing_accuracy_reducedquestions))
+    print("Able to predict conscientiousness based on agreeableness testing reduced questions using logistic with %{} accuracy".format(conscientiousness_logistic_testing_accuracy_reducedquestions), file=file_out)
 
     conscientiousness_dt_training_accuracy = metrics.accuracy_score(conscientiousnesscorrectlabels, conscientiousnessdecisiontreepredictions)
+    conscientiousness_dt_training_accuracy_reducedquestions = metrics.accuracy_score(conscientiousnesscorrectlabels, conscientiousnessdecisiontreepredictions_reducedquestions)
 
     print("Able to predict conscientiousness based on agreeableness training questions using decision tree with %{} accuracy".format(conscientiousness_dt_training_accuracy))
     print("Able to predict conscientiousness based on agreeableness training questions using decision tree with %{} accuracy".format(conscientiousness_dt_training_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on agreeableness training reduced questions using decision tree with %{} accuracy".format(conscientiousness_dt_training_accuracy_reducedquestions))
+    print("Able to predict conscientiousness based on agreeableness training reduced questions using decision tree with %{} accuracy".format(conscientiousness_dt_training_accuracy_reducedquestions), file=file_out)
 
     conscientiousness_dt_testing_accuracy = metrics.accuracy_score(testconscientiousnesscorrectlabels, conscientiousnessdecisiontreetestpredictions)
+    conscientiousness_dt_testing_accuracy_reducedquestions = metrics.accuracy_score(testconscientiousnesscorrectlabels, conscientiousnessdecisiontreetestpredictions_reducedquestions)
 
     print("Able to predict conscientiousness based on agreeableness testing questions using decision tree with %{} accuracy".format(conscientiousness_dt_testing_accuracy))
     print("Able to predict conscientiousness based on agreeableness testing questions using decision tree with %{} accuracy".format(conscientiousness_dt_testing_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on agreeableness testing reduced questions using decision tree with %{} accuracy".format(conscientiousness_dt_testing_accuracy_reducedquestions))
+    print("Able to predict conscientiousness based on agreeableness testing reduced questions using decision tree with %{} accuracy".format(conscientiousness_dt_testing_accuracy_reducedquestions), file=file_out)
 
     #OPENNESS
     opennessclf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
@@ -2880,58 +3015,106 @@ def PredictBasedOnAgreeableness(file_out, allsampledataset, allsampledatasettota
     opennessdecisiontreepredictions = opennessclf_decisiontree.predict(agreeablenessquestions)
     opennessdecisiontreetestpredictions = opennessclf_decisiontree.predict(testagreeablenessquestions)
 
+    opennessclf_percept3_reducedquestions = Perceptron(max_iter=20, random_state=0, eta0=1)
+    opennessclf_percept3_reducedquestions.fit(reducedagreeablenessquestions, opennesscorrectlabels, sample_weight=None)
+    opennessquestionpredictions_reducedquestions = opennessclf_percept3_reducedquestions.predict(reducedagreeablenessquestions)
+    testopennessquestionpredictions_reducedquestions = opennessclf_percept3_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    opennessclf_sgd_reducedquestions = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    opennessclf_sgd_reducedquestions.fit(reducedagreeablenessquestions, opennesscorrectlabels)
+    opennesssgdpredictions_reducedquestions = opennessclf_sgd_reducedquestions.predict(reducedagreeablenessquestions)
+    opennesssgdtestpredictions_reducedquestions = opennessclf_sgd_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    opennessclf_logistic_reducedquestions = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    opennessclf_logistic_reducedquestions.fit(reducedagreeablenessquestions, opennesscorrectlabels)
+    opennesslogisticpredictions_reducedquestions = opennessclf_logistic_reducedquestions.predict(reducedagreeablenessquestions)
+    opennesslogistictestpredictions_reducedquestions = opennessclf_logistic_reducedquestions.predict(testreducedagreeablenessquestions)
+    
+    opennessclf_decisiontree_reducedquestions = DecisionTreeClassifier(max_depth=20)
+    opennessclf_decisiontree_reducedquestions.fit(reducedagreeablenessquestions, opennesscorrectlabels)
+    opennessdecisiontreepredictions_reducedquestions = opennessclf_decisiontree_reducedquestions.predict(reducedagreeablenessquestions)
+    opennessdecisiontreetestpredictions_reducedquestions = opennessclf_decisiontree_reducedquestions.predict(testreducedagreeablenessquestions)
+
     # Evaluation
     openness_perceptron_training_accuracy = metrics.accuracy_score(opennesscorrectlabels, opennessquestionpredictions)
+    openness_perceptron_training_accuracy_reducedquestions = metrics.accuracy_score(opennesscorrectlabels, opennessquestionpredictions_reducedquestions)
 
     print("Able to predict openness based on agreeableness training questions using perceptron with %{} accuracy".format(openness_perceptron_training_accuracy))
     print("Able to predict openness based on agreeableness training questions using perceptron with %{} accuracy".format(openness_perceptron_training_accuracy), file=file_out)
+    print("Able to predict openness based on agreeableness training reduced questions using perceptron with %{} accuracy".format(openness_perceptron_training_accuracy_reducedquestions))
+    print("Able to predict openness based on agreeableness training reduced questions using perceptron with %{} accuracy".format(openness_perceptron_training_accuracy_reducedquestions), file=file_out)
 
     openness_perceptron_testing_accuracy = metrics.accuracy_score(testopennesscorrectlabels, testopennessquestionpredictions)
+    openness_perceptron_testing_accuracy_reducedquestions = metrics.accuracy_score(testopennesscorrectlabels, testopennessquestionpredictions_reducedquestions)
 
     print("Able to predict openness based on agreeableness testing questions using perceptron with %{} accuracy".format(openness_perceptron_testing_accuracy))
     print("Able to predict openness based on agreeableness testing questions using perceptron with %{} accuracy".format(openness_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict openness based on agreeableness testing reduced questions using perceptron with %{} accuracy".format(openness_perceptron_testing_accuracy_reducedquestions))
+    print("Able to predict openness based on agreeableness testing reduced questions using perceptron with %{} accuracy".format(openness_perceptron_testing_accuracy_reducedquestions), file=file_out)
 
     openness_sgd_training_accuracy = metrics.accuracy_score(opennesscorrectlabels, opennesssgdpredictions)
+    openness_sgd_training_accuracy_reducedquestions = metrics.accuracy_score(opennesscorrectlabels, opennesssgdpredictions_reducedquestions)
 
     print("Able to predict openness based on agreeableness training questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_training_accuracy))
     print("Able to predict openness based on agreeableness training questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_training_accuracy), file=file_out)
+    print("Able to predict openness based on agreeableness training reduced questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_training_accuracy_reducedquestions))
+    print("Able to predict openness based on agreeableness training reduced questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_training_accuracy_reducedquestions), file=file_out)
 
     openness_sgd_testing_accuracy = metrics.accuracy_score(testopennesscorrectlabels, opennesssgdtestpredictions)
+    openness_sgd_testing_accuracy_reducedquestions = metrics.accuracy_score(testopennesscorrectlabels, opennesssgdtestpredictions_reducedquestions)
 
     print("Able to predict openness based on agreeableness testing questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_testing_accuracy))
     print("Able to predict openness based on agreeableness testing questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_testing_accuracy), file=file_out)
+    print("Able to predict openness based on agreeableness testing reduced questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_testing_accuracy_reducedquestions))
+    print("Able to predict openness based on agreeableness testing reduced questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_testing_accuracy_reducedquestions), file=file_out)
 
     openness_logistic_training_accuracy = metrics.accuracy_score(opennesscorrectlabels, opennesslogisticpredictions)
+    openness_logistic_training_accuracy_reducedquestions = metrics.accuracy_score(opennesscorrectlabels, opennesslogisticpredictions_reducedquestions)
 
     print("Able to predict openness based on agreeableness training questions using logistic with %{} accuracy".format(openness_logistic_training_accuracy))
     print("Able to predict openness based on agreeableness training questions using logistic with %{} accuracy".format(openness_logistic_training_accuracy), file=file_out)
+    print("Able to predict openness based on agreeableness training reduced questions using logistic with %{} accuracy".format(openness_logistic_training_accuracy_reducedquestions))
+    print("Able to predict openness based on agreeableness training reduced questions using logistic with %{} accuracy".format(openness_logistic_training_accuracy_reducedquestions), file=file_out)
 
     openness_logistic_testing_accuracy = metrics.accuracy_score(testopennesscorrectlabels, opennesslogistictestpredictions)
+    openness_logistic_testing_accuracy_reducedquestions = metrics.accuracy_score(testopennesscorrectlabels, opennesslogistictestpredictions_reducedquestions)
 
     print("Able to predict openness based on agreeableness testing questions using logistic with %{} accuracy".format(openness_logistic_testing_accuracy))
     print("Able to predict openness based on agreeableness testing questions using logistic with %{} accuracy".format(openness_logistic_testing_accuracy), file=file_out)
+    print("Able to predict openness based on agreeableness testing reduced questions using logistic with %{} accuracy".format(openness_logistic_testing_accuracy_reducedquestions))
+    print("Able to predict openness based on agreeableness testing reduced questions using logistic with %{} accuracy".format(openness_logistic_testing_accuracy_reducedquestions), file=file_out)
 
     openness_dt_training_accuracy = metrics.accuracy_score(opennesscorrectlabels, opennessdecisiontreepredictions)
+    openness_dt_training_accuracy_reducedquestions = metrics.accuracy_score(opennesscorrectlabels, opennessdecisiontreepredictions_reducedquestions)
 
     print("Able to predict openness based on agreeableness training questions using decision tree with %{} accuracy".format(openness_dt_training_accuracy))
     print("Able to predict openness based on agreeableness training questions using decision tree with %{} accuracy".format(openness_dt_training_accuracy), file=file_out)
+    print("Able to predict openness based on agreeableness training reduced questions using decision tree with %{} accuracy".format(openness_dt_training_accuracy_reducedquestions))
+    print("Able to predict openness based on agreeableness training reduced questions using decision tree with %{} accuracy".format(openness_dt_training_accuracy_reducedquestions), file=file_out)
 
     openness_dt_testing_accuracy = metrics.accuracy_score(testopennesscorrectlabels, opennessdecisiontreetestpredictions)
+    openness_dt_testing_accuracy_reducedquestions = metrics.accuracy_score(testopennesscorrectlabels, opennessdecisiontreetestpredictions_reducedquestions)
 
     print("Able to predict openness based on agreeableness testing questions using decision tree with %{} accuracy".format(openness_dt_testing_accuracy))
     print("Able to predict openness based on agreeableness testing questions using decision tree with %{} accuracy".format(openness_dt_testing_accuracy), file=file_out)
+    print("Able to predict openness based on agreeableness testing reduced questions using decision tree with %{} accuracy".format(openness_dt_testing_accuracy_reducedquestions))
+    print("Able to predict openness based on agreeableness testing reduced questions using decision tree with %{} accuracy".format(openness_dt_testing_accuracy_reducedquestions), file=file_out)
 
     return
 
 def PredictBasedOnConscientiousness(file_out, allsampledataset, allsampledatasettotals, allsampledatasetpreferences, alltestdataset, alltestdatasettotals, alltestdatasetpreferences):
 
     conscientiousnessquestions = allsampledataset[:,30:40] # Select conscientiousness question columns
+    reducedconscientiousnessquestionindeces = PerceptronForPruningMultiplePredictions(allsampledataset, allsampledatasetpreferences, (30, 40), [0, 1, 2, 4], 5, 1, 3)
+    reducedconscientiousnessquestions = conscientiousnessquestions[:,reducedconscientiousnessquestionindeces]
+    
     extroversioncorrectlabels = allsampledatasetpreferences[:,0] # Select preferences for extroversion corresponding to columns
     neuroticismcorrectlabels = allsampledatasetpreferences[:,1] # Select preferences for neuroticism corresponding to columns
     agreeablenesscorrectlabels = allsampledatasetpreferences[:,2] # Select preferences for agreeableness corresponding to columns
     opennesscorrectlabels = allsampledatasetpreferences[:,4] # Select preferences for openness corresponding to columns
     
     testconscientiousnessquestions = alltestdataset[:,30:40] # Select conscientiousness question columns
+    testreducedconscientiousnessquestions = testconscientiousnessquestions[:,reducedconscientiousnessquestionindeces]
     testextroversioncorrectlabels = alltestdatasetpreferences[:,0] # Select preferences for extroversion corresponding to columns
     testneuroticismcorrectlabels = alltestdatasetpreferences[:,1] # Select preferences for neuroticism corresponding to columns
     testagreeablenesscorrectlabels = alltestdatasetpreferences[:,2] # Select preferences for agreeableness corresponding to columns
@@ -2958,46 +3141,90 @@ def PredictBasedOnConscientiousness(file_out, allsampledataset, allsampledataset
     extroversiondecisiontreepredictions = extroversionclf_decisiontree.predict(conscientiousnessquestions)
     extroversiondecisiontreetestpredictions = extroversionclf_decisiontree.predict(testconscientiousnessquestions)
 
+    extroversionclf_percept3_reducedquestions = Perceptron(max_iter=20, random_state=0, eta0=1)
+    extroversionclf_percept3_reducedquestions.fit(reducedconscientiousnessquestions, extroversioncorrectlabels, sample_weight=None)
+    extroversionquestionpredictions_reducedquestions = extroversionclf_percept3_reducedquestions.predict(reducedconscientiousnessquestions)
+    testextroversionquestionpredictions_reducedquestions = extroversionclf_percept3_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    extroversionclf_sgd_reducedquestions = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    extroversionclf_sgd_reducedquestions.fit(reducedconscientiousnessquestions, extroversioncorrectlabels)
+    extroversionsgdpredictions_reducedquestions = extroversionclf_sgd_reducedquestions.predict(reducedconscientiousnessquestions)
+    extroversionsgdtestpredictions_reducedquestions = extroversionclf_sgd_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    extroversionclf_logistic_reducedquestions = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    extroversionclf_logistic_reducedquestions.fit(reducedconscientiousnessquestions, extroversioncorrectlabels)
+    extroversionlogisticpredictions_reducedquestions = extroversionclf_logistic_reducedquestions.predict(reducedconscientiousnessquestions)
+    extroversionlogistictestpredictions_reducedquestions = extroversionclf_logistic_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    extroversionclf_decisiontree_reducedquestions = DecisionTreeClassifier(max_depth=20)
+    extroversionclf_decisiontree_reducedquestions.fit(reducedconscientiousnessquestions, extroversioncorrectlabels)
+    extroversiondecisiontreepredictions_reducedquestions = extroversionclf_decisiontree_reducedquestions.predict(reducedconscientiousnessquestions)
+    extroversiondecisiontreetestpredictions_reducedquestions = extroversionclf_decisiontree_reducedquestions.predict(testreducedconscientiousnessquestions)
+
     # Evaluation
     extroversion_perceptron_training_accuracy = metrics.accuracy_score(extroversioncorrectlabels, extroversionquestionpredictions)
+    extroversion_perceptron_training_accuracy_reducedquestions = metrics.accuracy_score(extroversioncorrectlabels, extroversionquestionpredictions_reducedquestions)
 
     print("Able to predict extroversion based on conscientiousness training questions using perceptron with %{} accuracy".format(extroversion_perceptron_training_accuracy))
     print("Able to predict extroversion based on conscientiousness training questions using perceptron with %{} accuracy".format(extroversion_perceptron_training_accuracy), file=file_out)
+    print("Able to predict extroversion based on conscientiousness training reduced questions using perceptron with %{} accuracy".format(extroversion_perceptron_training_accuracy_reducedquestions))
+    print("Able to predict extroversion based on conscientiousness training reduced questions using perceptron with %{} accuracy".format(extroversion_perceptron_training_accuracy_reducedquestions), file=file_out)
 
     extroversion_perceptron_testing_accuracy = metrics.accuracy_score(testextroversioncorrectlabels, testextroversionquestionpredictions)
+    extroversion_perceptron_testing_accuracy_reducedquestions = metrics.accuracy_score(testextroversioncorrectlabels, testextroversionquestionpredictions_reducedquestions)
 
     print("Able to predict extroversion based on conscientiousness testing questions using perceptron with %{} accuracy".format(extroversion_perceptron_testing_accuracy))
     print("Able to predict extroversion based on conscientiousness testing questions using perceptron with %{} accuracy".format(extroversion_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on conscientiousness testing reduced questions using perceptron with %{} accuracy".format(extroversion_perceptron_testing_accuracy_reducedquestions))
+    print("Able to predict extroversion based on conscientiousness testing reduced questions using perceptron with %{} accuracy".format(extroversion_perceptron_testing_accuracy_reducedquestions), file=file_out)
 
     extroversion_sgd_training_accuracy = metrics.accuracy_score(extroversioncorrectlabels, extroversionsgdpredictions)
+    extroversion_sgd_training_accuracy_reducedquestions = metrics.accuracy_score(extroversioncorrectlabels, extroversionsgdpredictions_reducedquestions)
 
     print("Able to predict extroversion based on conscientiousness training questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_training_accuracy))
     print("Able to predict extroversion based on conscientiousness training questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_training_accuracy), file=file_out)
+    print("Able to predict extroversion based on conscientiousness training reduced questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_training_accuracy_reducedquestions))
+    print("Able to predict extroversion based on conscientiousness training reduced questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_training_accuracy_reducedquestions), file=file_out)
 
     extroversion_sgd_testing_accuracy = metrics.accuracy_score(testextroversioncorrectlabels, extroversionsgdtestpredictions)
+    extroversion_sgd_testing_accuracy_reducedquestions = metrics.accuracy_score(testextroversioncorrectlabels, extroversionsgdtestpredictions_reducedquestions)
 
     print("Able to predict extroversion based on conscientiousness testing questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_testing_accuracy))
     print("Able to predict extroversion based on conscientiousness testing questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on conscientiousness testing reduced questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_testing_accuracy_reducedquestions))
+    print("Able to predict extroversion based on conscientiousness testing reduced questions using stochastic gradient descent with %{} accuracy".format(extroversion_sgd_testing_accuracy_reducedquestions), file=file_out)
 
     extroversion_logistic_training_accuracy = metrics.accuracy_score(extroversioncorrectlabels, extroversionlogisticpredictions)
+    extroversion_logistic_training_accuracy_reducedquestions = metrics.accuracy_score(extroversioncorrectlabels, extroversionlogisticpredictions_reducedquestions)
 
     print("Able to predict extroversion based on conscientiousness training questions using logistic with %{} accuracy".format(extroversion_logistic_training_accuracy))
     print("Able to predict extroversion based on conscientiousness training questions using logistic with %{} accuracy".format(extroversion_logistic_training_accuracy), file=file_out)
+    print("Able to predict extroversion based on conscientiousness training reduced questions using logistic with %{} accuracy".format(extroversion_logistic_training_accuracy_reducedquestions))
+    print("Able to predict extroversion based on conscientiousness training reduced questions using logistic with %{} accuracy".format(extroversion_logistic_training_accuracy_reducedquestions), file=file_out)
 
     extroversion_logistic_testing_accuracy = metrics.accuracy_score(testextroversioncorrectlabels, extroversionlogistictestpredictions)
+    extroversion_logistic_testing_accuracy_reducedquestions = metrics.accuracy_score(testextroversioncorrectlabels, extroversionlogistictestpredictions_reducedquestions)
 
     print("Able to predict extroversion based on conscientiousness testing questions using logistic with %{} accuracy".format(extroversion_logistic_testing_accuracy))
     print("Able to predict extroversion based on conscientiousness testing questions using logistic with %{} accuracy".format(extroversion_logistic_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on conscientiousness testing reduced questions using logistic with %{} accuracy".format(extroversion_logistic_testing_accuracy_reducedquestions))
+    print("Able to predict extroversion based on conscientiousness testing reduced questions using logistic with %{} accuracy".format(extroversion_logistic_testing_accuracy_reducedquestions), file=file_out)
 
     extroversion_dt_training_accuracy = metrics.accuracy_score(extroversioncorrectlabels, extroversiondecisiontreepredictions)
+    extroversion_dt_training_accuracy_reducedquestions = metrics.accuracy_score(extroversioncorrectlabels, extroversiondecisiontreepredictions_reducedquestions)
 
     print("Able to predict extroversion based on conscientiousness training questions using decision tree with %{} accuracy".format(extroversion_dt_training_accuracy))
     print("Able to predict extroversion based on conscientiousness training questions using decision tree with %{} accuracy".format(extroversion_dt_training_accuracy), file=file_out)
+    print("Able to predict extroversion based on conscientiousness training reduced questions using decision tree with %{} accuracy".format(extroversion_dt_training_accuracy_reducedquestions))
+    print("Able to predict extroversion based on conscientiousness training reduced questions using decision tree with %{} accuracy".format(extroversion_dt_training_accuracy_reducedquestions), file=file_out)
 
     extroversion_dt_testing_accuracy = metrics.accuracy_score(testextroversioncorrectlabels, extroversiondecisiontreetestpredictions)
+    extroversion_dt_testing_accuracy_reducedquestions = metrics.accuracy_score(testextroversioncorrectlabels, extroversiondecisiontreetestpredictions_reducedquestions)
 
     print("Able to predict extroversion based on conscientiousness testing questions using decision tree with %{} accuracy".format(extroversion_dt_testing_accuracy))
     print("Able to predict extroversion based on conscientiousness testing questions using decision tree with %{} accuracy".format(extroversion_dt_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on conscientiousness testing reduced questions using decision tree with %{} accuracy".format(extroversion_dt_testing_accuracy_reducedquestions))
+    print("Able to predict extroversion based on conscientiousness testing reduced questions using decision tree with %{} accuracy".format(extroversion_dt_testing_accuracy_reducedquestions), file=file_out)
 
     # NEUROTICISM
     neuroticismclf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
@@ -3020,46 +3247,90 @@ def PredictBasedOnConscientiousness(file_out, allsampledataset, allsampledataset
     neuroticismdecisiontreepredictions = neuroticismclf_decisiontree.predict(conscientiousnessquestions)
     neuroticismdecisiontreetestpredictions = neuroticismclf_decisiontree.predict(testconscientiousnessquestions)
 
+    neuroticismclf_percept3_reducedquestions = Perceptron(max_iter=20, random_state=0, eta0=1)
+    neuroticismclf_percept3_reducedquestions.fit(reducedconscientiousnessquestions, neuroticismcorrectlabels, sample_weight=None)
+    neuroticismquestionpredictions_reducedquestions = neuroticismclf_percept3_reducedquestions.predict(reducedconscientiousnessquestions)
+    testneuroticismquestionpredictions_reducedquestions = neuroticismclf_percept3_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    neuroticismclf_sgd_reducedquestions = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    neuroticismclf_sgd_reducedquestions.fit(reducedconscientiousnessquestions, neuroticismcorrectlabels)
+    neuroticismsgdpredictions_reducedquestions = neuroticismclf_sgd_reducedquestions.predict(reducedconscientiousnessquestions)
+    neuroticismsgdtestpredictions_reducedquestions = neuroticismclf_sgd_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    neuroticismclf_logistic_reducedquestions = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    neuroticismclf_logistic_reducedquestions.fit(reducedconscientiousnessquestions, neuroticismcorrectlabels)
+    neuroticismlogisticpredictions_reducedquestions = neuroticismclf_logistic_reducedquestions.predict(reducedconscientiousnessquestions)
+    neuroticismlogistictestpredictions_reducedquestions = neuroticismclf_logistic_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    neuroticismclf_decisiontree_reducedquestions = DecisionTreeClassifier(max_depth=20)
+    neuroticismclf_decisiontree_reducedquestions.fit(reducedconscientiousnessquestions, neuroticismcorrectlabels)
+    neuroticismdecisiontreepredictions_reducedquestions = neuroticismclf_decisiontree_reducedquestions.predict(reducedconscientiousnessquestions)
+    neuroticismdecisiontreetestpredictions_reducedquestions = neuroticismclf_decisiontree_reducedquestions.predict(testreducedconscientiousnessquestions)
+
     # Evaluation
     neuroticism_perceptron_training_accuracy = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismquestionpredictions)
+    neuroticicm_perceptron_training_accuracy_reducedquestions = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismquestionpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on conscientiousness training questions using perceptron with %{} accuracy".format(neuroticism_perceptron_training_accuracy))
     print("Able to predict neuroticism based on conscientiousness training questions using perceptron with %{} accuracy".format(neuroticism_perceptron_training_accuracy), file=file_out)
+    print("Able to predict neuroticism based on conscientiousness training reduced questions using perceptron with %{} accuracy".format(neuroticicm_perceptron_training_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on conscientiousness training reduced questions using perceptron with %{} accuracy".format(neuroticicm_perceptron_training_accuracy_reducedquestions), file=file_out)
 
     neuroticism_perceptron_testing_accuracy = metrics.accuracy_score(testneuroticismcorrectlabels, testneuroticismquestionpredictions)
+    neuroticicm_perceptron_testing_accuracy_reducedquestions = metrics.accuracy_score(testneuroticismcorrectlabels, testneuroticismquestionpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on conscientiousness testing questions using perceptron with %{} accuracy".format(neuroticism_perceptron_testing_accuracy))
     print("Able to predict neuroticism based on conscientiousness testing questions using perceptron with %{} accuracy".format(neuroticism_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on conscientiousness testing reduced questions using perceptron with %{} accuracy".format(neuroticicm_perceptron_testing_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on conscientiousness testing reduced questions using perceptron with %{} accuracy".format(neuroticicm_perceptron_testing_accuracy_reducedquestions), file=file_out)
 
     neuroticism_sgd_training_accuracy = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismsgdpredictions)
+    neuroticicm_sgd_training_accuracy_reducedquestions = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismsgdpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on conscientiousness training questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_training_accuracy))
     print("Able to predict neuroticism based on conscientiousness training questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_training_accuracy), file=file_out)
+    print("Able to predict neuroticism based on conscientiousness training reduced questions using stochastic gradient descent with %{} accuracy".format(neuroticicm_sgd_training_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on conscientiousness training reduced questions using stochastic gradient descent with %{} accuracy".format(neuroticicm_sgd_training_accuracy_reducedquestions), file=file_out)
 
     neuroticism_sgd_testing_accuracy = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismsgdtestpredictions)
+    neuroticism_sgd_testing_accuracy_reducedquestions = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismsgdtestpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on conscientiousness testing questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_testing_accuracy))
     print("Able to predict neuroticism based on conscientiousness testing questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on conscientiousness testing reduced questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_testing_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on conscientiousness testing reduced questions using stochastic gradient descent with %{} accuracy".format(neuroticism_sgd_testing_accuracy_reducedquestions), file=file_out)
 
     neuroticism_logistic_training_accuracy = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismlogisticpredictions)
+    neuroticicm_logistic_training_accuracy_reducedquestions = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismlogisticpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on conscientiousness training questions using logistic with %{} accuracy".format(neuroticism_logistic_training_accuracy))
     print("Able to predict neuroticism based on conscientiousness training questions using logistic with %{} accuracy".format(neuroticism_logistic_training_accuracy), file=file_out)
+    print("Able to predict neuroticism based on conscientiousness training reduced questions using logistic with %{} accuracy".format(neuroticicm_logistic_training_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on conscientiousness training reduced questions using logistic with %{} accuracy".format(neuroticicm_logistic_training_accuracy_reducedquestions), file=file_out)
 
     neuroticism_logistic_testing_accuracy = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismlogistictestpredictions)
+    neuroticism_logistic_testing_accuracy_reducedquestions = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismlogistictestpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on conscientiousness testing questions using logistic with %{} accuracy".format(neuroticism_logistic_testing_accuracy))
     print("Able to predict neuroticism based on conscientiousness testing questions using logistic with %{} accuracy".format(neuroticism_logistic_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on conscientiousness testing reduced questions using logistic with %{} accuracy".format(neuroticism_logistic_testing_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on conscientiousness testing reduced questions using logistic with %{} accuracy".format(neuroticism_logistic_testing_accuracy_reducedquestions), file=file_out)
 
     neuroticism_dt_training_accuracy = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismdecisiontreepredictions)
+    neuroticicm_dt_training_accuracy_reducedquestions = metrics.accuracy_score(neuroticismcorrectlabels, neuroticismdecisiontreepredictions_reducedquestions)
 
     print("Able to predict neuroticism based on conscientiousness training questions using decision tree with %{} accuracy".format(neuroticism_dt_training_accuracy))
     print("Able to predict neuroticism based on conscientiousness training questions using decision tree with %{} accuracy".format(neuroticism_dt_training_accuracy), file=file_out)
+    print("Able to predict neuroticism based on conscientiousness training reduced questions using decision tree with %{} accuracy".format(neuroticicm_dt_training_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on conscientiousness training reduced questions using decision tree with %{} accuracy".format(neuroticicm_dt_training_accuracy_reducedquestions), file=file_out)
 
     neuroticism_dt_testing_accuracy = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismdecisiontreetestpredictions)
+    neuroticism_dt_testing_accuracy_reducedquestions = metrics.accuracy_score(testneuroticismcorrectlabels, neuroticismdecisiontreetestpredictions_reducedquestions)
 
     print("Able to predict neuroticism based on conscientiousness testing questions using decision tree with %{} accuracy".format(neuroticism_dt_testing_accuracy))
     print("Able to predict neuroticism based on conscientiousness testing questions using decision tree with %{} accuracy".format(neuroticism_dt_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on conscientiousness testing reduced questions using decision tree with %{} accuracy".format(neuroticism_dt_testing_accuracy_reducedquestions))
+    print("Able to predict neuroticism based on conscientiousness testing reduced questions using decision tree with %{} accuracy".format(neuroticism_dt_testing_accuracy_reducedquestions), file=file_out)
 
     #AGREEABLENESS
     agreeablenessclf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
@@ -3081,47 +3352,91 @@ def PredictBasedOnConscientiousness(file_out, allsampledataset, allsampledataset
     agreeablenessclf_decisiontree.fit(conscientiousnessquestions, agreeablenesscorrectlabels)
     agreeablenessdecisiontreepredictions = agreeablenessclf_decisiontree.predict(conscientiousnessquestions)
     agreeablenessdecisiontreetestpredictions = agreeablenessclf_decisiontree.predict(testconscientiousnessquestions)
+    
+    agreeablenessclf_percept3_reducedquestions = Perceptron(max_iter=20, random_state=0, eta0=1)
+    agreeablenessclf_percept3_reducedquestions.fit(reducedconscientiousnessquestions, agreeablenesscorrectlabels, sample_weight=None)
+    agreeablenessquestionpredictions_reducedquestions = agreeablenessclf_percept3_reducedquestions.predict(reducedconscientiousnessquestions)
+    testagreeablenessquestionpredictions_reducedquestions = agreeablenessclf_percept3_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    agreeablenessclf_sgd_reducedquestions = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    agreeablenessclf_sgd_reducedquestions.fit(reducedconscientiousnessquestions, agreeablenesscorrectlabels)
+    agreeablenesssgdpredictions_reducedquestions = agreeablenessclf_sgd_reducedquestions.predict(reducedconscientiousnessquestions)
+    agreeablenesssgdtestpredictions_reducedquestions = agreeablenessclf_sgd_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    agreeablenessclf_logistic_reducedquestions = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    agreeablenessclf_logistic_reducedquestions.fit(reducedconscientiousnessquestions, agreeablenesscorrectlabels)
+    agreeablenesslogisticpredictions_reducedquestions = agreeablenessclf_logistic_reducedquestions.predict(reducedconscientiousnessquestions)
+    agreeablenesslogistictestpredictions_reducedquestions = agreeablenessclf_logistic_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    agreeablenessclf_decisiontree_reducedquestions = DecisionTreeClassifier(max_depth=20)
+    agreeablenessclf_decisiontree_reducedquestions.fit(reducedconscientiousnessquestions, agreeablenesscorrectlabels)
+    agreeablenessdecisiontreepredictions_reducedquestions = agreeablenessclf_decisiontree_reducedquestions.predict(reducedconscientiousnessquestions)
+    agreeablenessdecisiontreetestpredictions_reducedquestions = agreeablenessclf_decisiontree_reducedquestions.predict(testreducedconscientiousnessquestions)
 
     # Evaluation
     agreeableness_perceptron_training_accuracy = metrics.accuracy_score(agreeablenesscorrectlabels, agreeablenessquestionpredictions)
+    agreeableness_perceptron_training_accuracy_reducedquestions = metrics.accuracy_score(agreeablenesscorrectlabels, agreeablenessquestionpredictions_reducedquestions)
 
     print("Able to predict agreeableness based on conscientiousness training questions using perceptron with %{} accuracy".format(agreeableness_perceptron_training_accuracy))
     print("Able to predict agreeableness based on conscientiousness training questions using perceptron with %{} accuracy".format(agreeableness_perceptron_training_accuracy), file=file_out)
+    print("Able to predict agreeableness based on conscientiousness training reduced questions using perceptron with %{} accuracy".format(agreeableness_perceptron_training_accuracy_reducedquestions))
+    print("Able to predict agreeableness based on conscientiousness training reduced questions using perceptron with %{} accuracy".format(agreeableness_perceptron_training_accuracy_reducedquestions), file=file_out)
 
     agreeableness_perceptron_testing_accuracy = metrics.accuracy_score(testagreeablenesscorrectlabels, testagreeablenessquestionpredictions)
+    agreeableness_perceptron_testing_accuracy_reducedquestions = metrics.accuracy_score(testagreeablenesscorrectlabels, testagreeablenessquestionpredictions_reducedquestions)
 
     print("Able to predict agreeableness based on conscientiousness testing questions using perceptron with %{} accuracy".format(agreeableness_perceptron_testing_accuracy))
     print("Able to predict agreeableness based on conscientiousness testing questions using perceptron with %{} accuracy".format(agreeableness_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict agreeableness based on conscientiousness testing reduced questions using perceptron with %{} accuracy".format(agreeableness_perceptron_testing_accuracy_reducedquestions))
+    print("Able to predict agreeableness based on conscientiousness testing reduced questions using perceptron with %{} accuracy".format(agreeableness_perceptron_testing_accuracy_reducedquestions), file=file_out)
 
     agreeableness_sgd_training_accuracy = metrics.accuracy_score(agreeablenesscorrectlabels, agreeablenesssgdpredictions)
+    agreeableness_sgd_training_accuracy_reducedquestions = metrics.accuracy_score(agreeablenesscorrectlabels, agreeablenesssgdpredictions_reducedquestions)
 
     print("Able to predict agreeableness based on conscientiousness training questions using stochastic gradient descent with %{} accuracy".format(agreeableness_sgd_training_accuracy))
     print("Able to predict agreeableness based on conscientiousness training questions using stochastic gradient descent with %{} accuracy".format(agreeableness_sgd_training_accuracy), file=file_out)
+    print("Able to predict agreeableness based on conscientiousness training reduced questions using stochastic gradient descent with %{} accuracy".format(agreeableness_sgd_training_accuracy_reducedquestions))
+    print("Able to predict agreeableness based on conscientiousness training reduced questions using stochastic gradient descent with %{} accuracy".format(agreeableness_sgd_training_accuracy_reducedquestions), file=file_out)
 
     agreeableness_sgd_testing_accuracy = metrics.accuracy_score(testagreeablenesscorrectlabels, agreeablenesssgdtestpredictions)
+    agreeableness_sgd_testing_accuracy_reducedquestions = metrics.accuracy_score(testagreeablenesscorrectlabels, agreeablenesssgdtestpredictions_reducedquestions)
 
     print("Able to predict agreeableness based on conscientiousness testing questions using stochastic gradient descent with %{} accuracy".format(agreeableness_sgd_testing_accuracy))
     print("Able to predict agreeableness based on conscientiousness testing questions using stochastic gradient descent with %{} accuracy".format(agreeableness_sgd_testing_accuracy), file=file_out)
+    print("Able to predict agreeableness based on conscientiousness testing reduced questions using stochastic gradient descent with %{} accuracy".format(agreeableness_sgd_testing_accuracy_reducedquestions))
+    print("Able to predict agreeableness based on conscientiousness testing reduced questions using stochastic gradient descent with %{} accuracy".format(agreeableness_sgd_testing_accuracy_reducedquestions), file=file_out)
 
     agreeableness_logistic_training_accuracy = metrics.accuracy_score(agreeablenesscorrectlabels, agreeablenesslogisticpredictions)
+    agreeableness_logistic_training_accuracy_reducedquestions = metrics.accuracy_score(agreeablenesscorrectlabels, agreeablenesslogisticpredictions_reducedquestions)
 
     print("Able to predict agreeableness based on conscientiousness training questions using logistic with %{} accuracy".format(agreeableness_logistic_training_accuracy))
     print("Able to predict agreeableness based on conscientiousness training questions using logistic with %{} accuracy".format(agreeableness_logistic_training_accuracy), file=file_out)
+    print("Able to predict agreeableness based on conscientiousness training reduced questions using logistic with %{} accuracy".format(agreeableness_logistic_training_accuracy_reducedquestions))
+    print("Able to predict agreeableness based on conscientiousness training reduced questions using logistic with %{} accuracy".format(agreeableness_logistic_training_accuracy_reducedquestions), file=file_out)
 
     agreeableness_logistic_testing_accuracy = metrics.accuracy_score(testagreeablenesscorrectlabels, agreeablenesslogistictestpredictions)
+    agreeableness_logistic_testing_accuracy_reducedquestions = metrics.accuracy_score(testagreeablenesscorrectlabels, agreeablenesslogistictestpredictions_reducedquestions)
 
     print("Able to predict agreeableness based on conscientiousness testing questions using logistic with %{} accuracy".format(agreeableness_logistic_testing_accuracy))
     print("Able to predict agreeableness based on conscientiousness testing questions using logistic with %{} accuracy".format(agreeableness_logistic_testing_accuracy), file=file_out)
+    print("Able to predict agreeableness based on conscientiousness testing reduced questions using logistic with %{} accuracy".format(agreeableness_logistic_testing_accuracy_reducedquestions))
+    print("Able to predict agreeableness based on conscientiousness testing reduced questions using logistic with %{} accuracy".format(agreeableness_logistic_testing_accuracy_reducedquestions), file=file_out)
 
     agreeableness_dt_training_accuracy = metrics.accuracy_score(agreeablenesscorrectlabels, agreeablenessdecisiontreepredictions)
+    agreeableness_dt_training_accuracy_reducedquestions = metrics.accuracy_score(agreeablenesscorrectlabels, agreeablenessdecisiontreepredictions_reducedquestions)
 
     print("Able to predict agreeableness based on conscientiousness training questions using decision tree with %{} accuracy".format(agreeableness_dt_training_accuracy))
     print("Able to predict agreeableness based on conscientiousness training questions using decision tree with %{} accuracy".format(agreeableness_dt_training_accuracy), file=file_out)
+    print("Able to predict agreeableness based on conscientiousness training reduced questions using decision tree with %{} accuracy".format(agreeableness_dt_training_accuracy_reducedquestions))
+    print("Able to predict agreeableness based on conscientiousness training reduced questions using decision tree with %{} accuracy".format(agreeableness_dt_training_accuracy_reducedquestions), file=file_out)
 
     agreeableness_dt_testing_accuracy = metrics.accuracy_score(testagreeablenesscorrectlabels, agreeablenessdecisiontreetestpredictions)
+    agreeableness_dt_testing_accuracy_reducedquestions = metrics.accuracy_score(testagreeablenesscorrectlabels, agreeablenessdecisiontreetestpredictions_reducedquestions)
 
     print("Able to predict agreeableness based on conscientiousness testing questions using decision tree with %{} accuracy".format(agreeableness_dt_testing_accuracy))
     print("Able to predict agreeableness based on conscientiousness testing questions using decision tree with %{} accuracy".format(agreeableness_dt_testing_accuracy), file=file_out)
+    print("Able to predict agreeableness based on conscientiousness testing reduced questions using decision tree with %{} accuracy".format(agreeableness_dt_testing_accuracy_reducedquestions))
+    print("Able to predict agreeableness based on conscientiousness testing reduced questions using decision tree with %{} accuracy".format(agreeableness_dt_testing_accuracy_reducedquestions), file=file_out)
 
     #OPENNESS
     opennessclf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
@@ -3144,46 +3459,90 @@ def PredictBasedOnConscientiousness(file_out, allsampledataset, allsampledataset
     opennessdecisiontreepredictions = opennessclf_decisiontree.predict(conscientiousnessquestions)
     opennessdecisiontreetestpredictions = opennessclf_decisiontree.predict(testconscientiousnessquestions)
 
+    opennessclf_percept3_reducedquestions = Perceptron(max_iter=20, random_state=0, eta0=1)
+    opennessclf_percept3_reducedquestions.fit(reducedconscientiousnessquestions, opennesscorrectlabels, sample_weight=None)
+    opennessquestionpredictions_reducedquestions = opennessclf_percept3_reducedquestions.predict(reducedconscientiousnessquestions)
+    testopennessquestionpredictions_reducedquestions = opennessclf_percept3_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    opennessclf_sgd_reducedquestions = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    opennessclf_sgd_reducedquestions.fit(reducedconscientiousnessquestions, opennesscorrectlabels)
+    opennesssgdpredictions_reducedquestions = opennessclf_sgd_reducedquestions.predict(reducedconscientiousnessquestions)
+    opennesssgdtestpredictions_reducedquestions = opennessclf_sgd_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    opennessclf_logistic_reducedquestions = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    opennessclf_logistic_reducedquestions.fit(reducedconscientiousnessquestions, opennesscorrectlabels)
+    opennesslogisticpredictions_reducedquestions = opennessclf_logistic_reducedquestions.predict(reducedconscientiousnessquestions)
+    opennesslogistictestpredictions_reducedquestions = opennessclf_logistic_reducedquestions.predict(testreducedconscientiousnessquestions)
+    
+    opennessclf_decisiontree_reducedquestions = DecisionTreeClassifier(max_depth=20)
+    opennessclf_decisiontree_reducedquestions.fit(reducedconscientiousnessquestions, opennesscorrectlabels)
+    opennessdecisiontreepredictions_reducedquestions = opennessclf_decisiontree_reducedquestions.predict(reducedconscientiousnessquestions)
+    opennessdecisiontreetestpredictions_reducedquestions = opennessclf_decisiontree_reducedquestions.predict(testreducedconscientiousnessquestions)
+
     # Evaluation
     openness_perceptron_training_accuracy = metrics.accuracy_score(opennesscorrectlabels, opennessquestionpredictions)
+    openness_perceptron_training_accuracy_reducedquestions = metrics.accuracy_score(opennesscorrectlabels, opennessquestionpredictions_reducedquestions)
 
     print("Able to predict openness based on conscientiousness training questions using perceptron with %{} accuracy".format(openness_perceptron_training_accuracy))
     print("Able to predict openness based on conscientiousness training questions using perceptron with %{} accuracy".format(openness_perceptron_training_accuracy), file=file_out)
+    print("Able to predict openness based on conscientiousness training reduced questions using perceptron with %{} accuracy".format(openness_perceptron_training_accuracy_reducedquestions))
+    print("Able to predict openness based on conscientiousness training reduced questions using perceptron with %{} accuracy".format(openness_perceptron_training_accuracy_reducedquestions), file=file_out)
 
     openness_perceptron_testing_accuracy = metrics.accuracy_score(testopennesscorrectlabels, testopennessquestionpredictions)
+    openness_perceptron_testing_accuracy_reducedquestions = metrics.accuracy_score(testopennesscorrectlabels, testopennessquestionpredictions_reducedquestions)
 
     print("Able to predict openness based on conscientiousness testing questions using perceptron with %{} accuracy".format(openness_perceptron_testing_accuracy))
     print("Able to predict openness based on conscientiousness testing questions using perceptron with %{} accuracy".format(openness_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict openness based on conscientiousness testing reduced questions using perceptron with %{} accuracy".format(openness_perceptron_testing_accuracy_reducedquestions))
+    print("Able to predict openness based on conscientiousness testing reduced questions using perceptron with %{} accuracy".format(openness_perceptron_testing_accuracy_reducedquestions), file=file_out)
 
     openness_sgd_training_accuracy = metrics.accuracy_score(opennesscorrectlabels, opennesssgdpredictions)
+    openness_sgd_training_accuracy_reducedquestions = metrics.accuracy_score(opennesscorrectlabels, opennesssgdpredictions_reducedquestions)
 
     print("Able to predict openness based on conscientiousness training questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_training_accuracy))
     print("Able to predict openness based on conscientiousness training questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_training_accuracy), file=file_out)
+    print("Able to predict openness based on conscientiousness training reduced questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_training_accuracy_reducedquestions))
+    print("Able to predict openness based on conscientiousness training reduced questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_training_accuracy_reducedquestions), file=file_out)
 
     openness_sgd_testing_accuracy = metrics.accuracy_score(testopennesscorrectlabels, opennesssgdtestpredictions)
+    openness_sgd_testing_accuracy_reducedquestions = metrics.accuracy_score(testopennesscorrectlabels, opennesssgdtestpredictions_reducedquestions)
 
     print("Able to predict openness based on conscientiousness testing questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_testing_accuracy))
     print("Able to predict openness based on conscientiousness testing questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_testing_accuracy), file=file_out)
+    print("Able to predict openness based on conscientiousness testing reduced questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_testing_accuracy_reducedquestions))
+    print("Able to predict openness based on conscientiousness testing reduced questions using stochastic gradient descent with %{} accuracy".format(openness_sgd_testing_accuracy_reducedquestions), file=file_out)
 
     openness_logistic_training_accuracy = metrics.accuracy_score(opennesscorrectlabels, opennesslogisticpredictions)
+    openness_logistic_training_accuracy_reducedquestions = metrics.accuracy_score(opennesscorrectlabels, opennesslogisticpredictions_reducedquestions)
 
     print("Able to predict openness based on conscientiousness training questions using logistic with %{} accuracy".format(openness_logistic_training_accuracy))
     print("Able to predict openness based on conscientiousness training questions using logistic with %{} accuracy".format(openness_logistic_training_accuracy), file=file_out)
+    print("Able to predict openness based on conscientiousness training reduced questions using logistic with %{} accuracy".format(openness_logistic_training_accuracy_reducedquestions))
+    print("Able to predict openness based on conscientiousness training reduced questions using logistic with %{} accuracy".format(openness_logistic_training_accuracy_reducedquestions), file=file_out)
 
     openness_logistic_testing_accuracy = metrics.accuracy_score(testopennesscorrectlabels, opennesslogistictestpredictions)
+    openness_logistic_testing_accuracy_reducedquestions = metrics.accuracy_score(testopennesscorrectlabels, opennesslogistictestpredictions_reducedquestions)
 
     print("Able to predict openness based on conscientiousness testing questions using logistic with %{} accuracy".format(openness_logistic_testing_accuracy))
     print("Able to predict openness based on conscientiousness testing questions using logistic with %{} accuracy".format(openness_logistic_testing_accuracy), file=file_out)
+    print("Able to predict openness based on conscientiousness testing reduced questions using logistic with %{} accuracy".format(openness_logistic_testing_accuracy_reducedquestions))
+    print("Able to predict openness based on conscientiousness testing reduced questions using logistic with %{} accuracy".format(openness_logistic_testing_accuracy_reducedquestions), file=file_out)
 
     openness_dt_training_accuracy = metrics.accuracy_score(opennesscorrectlabels, opennessdecisiontreepredictions)
+    openness_dt_training_accuracy_reducedquestions = metrics.accuracy_score(opennesscorrectlabels, opennessdecisiontreepredictions_reducedquestions)
 
     print("Able to predict openness based on conscientiousness training questions using decision tree with %{} accuracy".format(openness_dt_training_accuracy))
     print("Able to predict openness based on conscientiousness training questions using decision tree with %{} accuracy".format(openness_dt_training_accuracy), file=file_out)
+    print("Able to predict openness based on conscientiousness training reduced questions using decision tree with %{} accuracy".format(openness_dt_training_accuracy_reducedquestions))
+    print("Able to predict openness based on conscientiousness training reduced questions using decision tree with %{} accuracy".format(openness_dt_training_accuracy_reducedquestions), file=file_out)
 
     openness_dt_testing_accuracy = metrics.accuracy_score(testopennesscorrectlabels, opennessdecisiontreetestpredictions)
+    openness_dt_testing_accuracy_reducedquestions = metrics.accuracy_score(testopennesscorrectlabels, opennessdecisiontreetestpredictions_reducedquestions)
 
     print("Able to predict openness based on conscientiousness testing questions using decision tree with %{} accuracy".format(openness_dt_testing_accuracy))
     print("Able to predict openness based on conscientiousness testing questions using decision tree with %{} accuracy".format(openness_dt_testing_accuracy), file=file_out)
+    print("Able to predict openness based on conscientiousness testing reduced questions using decision tree with %{} accuracy".format(openness_dt_testing_accuracy_reducedquestions))
+    print("Able to predict openness based on conscientiousness testing reduced questions using decision tree with %{} accuracy".format(openness_dt_testing_accuracy_reducedquestions), file=file_out)
 
     return
 
