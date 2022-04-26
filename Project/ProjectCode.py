@@ -485,73 +485,73 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     testingcorrectlabels = alltestingdatasetpreferences[:,0] # Select preferences for extroversion corresponding to columns
 
     clf_percept0 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    individual_ens_estimators.append('perceptron', clf_percept0)
+    individual_ens_estimators.append(('perceptron', clf_percept0))
     clf_percept0.fit(trainingdatasetquestions, trainingcorrectlabels, sample_weight=None)
     perceptquestionpredictions = clf_percept0.predict(trainingdatasetquestions)
     testquestionpredictions = clf_percept0.predict(testingdatasetquestions)
 
     clf_percept1 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    total_ens_estimators.append('perceptron', clf_percept1)
+    total_ens_estimators.append(('perceptron', clf_percept1))
     clf_percept1.fit(trainingdatasettotals, trainingcorrectlabels, sample_weight=None)
     perceptpredictions = clf_percept1.predict(trainingdatasettotals)
     testpredictions = clf_percept1.predict(testingdatasettotals)
 
     clf_percept2 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    preference_ens_estimators.append('perceptron', clf_percept2)
+    preference_ens_estimators.append(('perceptron', clf_percept2))
     clf_percept2.fit(trainingdatasetpreferences, trainingcorrectlabels, sample_weight=None)
     preferencepredictions = clf_percept2.predict(trainingdatasetpreferences)
     testpreferencepredictions = clf_percept2.predict(testingdatasetpreferences)
     
     clf_sgd0 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    individual_ens_estimators.append('sgd', clf_sgd0)
+    individual_ens_estimators.append(('sgd', clf_sgd0))
     clf_sgd0.fit(trainingdatasetquestions, trainingcorrectlabels)
     sgdquestionpredictions = clf_sgd0.predict(trainingdatasetquestions)
     sgdtestquestionpredictions = clf_sgd0.predict(testingdatasetquestions)
     
     clf_sgd1 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    total_ens_estimators.append('sgd', clf_sgd1)
+    total_ens_estimators.append(('sgd', clf_sgd1))
     clf_sgd1.fit(trainingdatasettotals, trainingcorrectlabels)
     sgdpredictions = clf_sgd1.predict(trainingdatasettotals)
     sgdtestpredictions = clf_sgd1.predict(testingdatasettotals)
     
     clf_sgd2 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    preference_ens_estimators.append('sgd', clf_sgd2)
+    preference_ens_estimators.append(('sgd', clf_sgd2))
     clf_sgd2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     sgdpreferencepredictions = clf_sgd2.predict(trainingdatasetpreferences)
     sgdtestpreferencepredictions = clf_sgd2.predict(testingdatasetpreferences)
     
     clf_logistic0 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    individual_ens_estimators.append('log_reg', clf_logistic0)
+    individual_ens_estimators.append(('log_reg', clf_logistic0))
     clf_logistic0.fit(trainingdatasetquestions, trainingcorrectlabels)
     logisticquestionpredictions = clf_logistic0.predict(trainingdatasetquestions)
     logistictestquestionpredictions = clf_logistic0.predict(testingdatasetquestions)
     
     clf_logistic1 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    total_ens_estimators.append('log_reg', clf_logistic1)
+    total_ens_estimators.append(('log_reg', clf_logistic1))
     clf_logistic1.fit(trainingdatasettotals, trainingcorrectlabels)
     logisticpredictions = clf_logistic1.predict(trainingdatasettotals)
     logistictestpredictions = clf_logistic1.predict(testingdatasettotals)
     
     clf_logistic2 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    preference_ens_estimators.append('log_reg', clf_logistic2)
+    preference_ens_estimators.append(('log_reg', clf_logistic2))
     clf_logistic2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     logisticpreferencepredictions = clf_logistic2.predict(trainingdatasetpreferences)
     logistictestpreferencepredictions = clf_logistic2.predict(testingdatasetpreferences)
     
     clf_decisiontree0 = DecisionTreeClassifier(max_depth=20)
-    individual_ens_estimators.append('dt', clf_decisiontree0)
+    individual_ens_estimators.append(('dt', clf_decisiontree0))
     clf_decisiontree0.fit(trainingdatasetquestions, trainingcorrectlabels)
     decisiontreequestionpredictions = clf_decisiontree0.predict(trainingdatasetquestions)
     decisiontreetestquestionpredictions = clf_decisiontree0.predict(testingdatasetquestions)
     
     clf_decisiontree1 = DecisionTreeClassifier(max_depth=20)
-    total_ens_estimators.append('dt', clf_decisiontree1)
+    total_ens_estimators.append(('dt', clf_decisiontree1))
     clf_decisiontree1.fit(trainingdatasettotals, trainingcorrectlabels)
     decisiontreepredictions = clf_decisiontree1.predict(trainingdatasettotals)
     decisiontreetestpredictions = clf_decisiontree1.predict(testingdatasettotals)
     
     clf_decisiontree2 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append('dt', clf_decisiontree2)
+    preference_ens_estimators.append(('dt', clf_decisiontree2))
     clf_decisiontree2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     decisiontreepreferencepredictions = clf_decisiontree2.predict(trainingdatasetpreferences)
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
@@ -700,7 +700,7 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     print("Able to predict extroversion based on individual training totals using ensemble of the above with %{} accuracy".format(totals_voting_training_accuracy))
     print("Able to predict extroversion based on individual training totals using ensemble of the above with %{} accuracy".format(totals_voting_training_accuracy), file=file_out)
 
-    votingtesttotalspredictions = individual_voting.predict(testingdatasettotals)
+    votingtesttotalspredictions = totals_voting.predict(testingdatasettotals)
     totals_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtesttotalspredictions)
 
     print("Able to predict extroversion based on individual testing totals using ensemble of the above with %{} accuracy".format(totals_voting_testing_accuracy))
@@ -708,14 +708,14 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
 
     preferences_voting = VotingClassifier(estimators=preference_ens_estimators)
     preferences_voting.fit(trainingdatasetpreferences, trainingcorrectlabels)
-    preferencestotalpredictions = totals_voting.predict(trainingdatasetpreferences)
+    preferencestotalpredictions = preferences_voting.predict(trainingdatasetpreferences)
 
     preferences_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, preferencestotalpredictions)
 
     print("Able to predict extroversion based on individual training preferences using ensemble of the above with %{} accuracy".format(preferences_voting_training_accuracy))
     print("Able to predict extroversion based on individual training preferences using ensemble of the above with %{} accuracy".format(preferences_voting_training_accuracy), file=file_out)
 
-    votingtestpreferencespredictions = individual_voting.predict(testingdatasetpreferences)
+    votingtestpreferencespredictions = preferences_voting.predict(testingdatasetpreferences)
     preferences_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpreferencespredictions)
 
     print("Able to predict extroversion based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy))
@@ -742,73 +742,73 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     testingcorrectlabels = alltestingdatasetpreferences[:,1] # Select preferences for neuroticism corresponding to columns
 
     clf_percept0 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    individual_ens_estimators.append('perceptron', clf_percept0)
+    individual_ens_estimators.append(('perceptron', clf_percept0))
     clf_percept0.fit(trainingdatasetquestions, trainingcorrectlabels, sample_weight=None)
     perceptquestionpredictions = clf_percept0.predict(trainingdatasetquestions)
     testquestionpredictions = clf_percept0.predict(testingdatasetquestions)
 
     clf_percept1 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    total_ens_estimators.append('perceptron', clf_percept1)
+    total_ens_estimators.append(('perceptron', clf_percept1))
     clf_percept1.fit(trainingdatasettotals, trainingcorrectlabels, sample_weight=None)
     perceptpredictions = clf_percept1.predict(trainingdatasettotals)
     testpredictions = clf_percept1.predict(testingdatasettotals)
 
     clf_percept2 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    preference_ens_estimators.append('perceptron', clf_percept2)
+    preference_ens_estimators.append(('perceptron', clf_percept2))
     clf_percept2.fit(trainingdatasetpreferences, trainingcorrectlabels, sample_weight=None)
     preferencepredictions = clf_percept2.predict(trainingdatasetpreferences)
     testpreferencepredictions = clf_percept2.predict(testingdatasetpreferences)
     
     clf_sgd0 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    individual_ens_estimators.append('sgd', clf_sgd0)
+    individual_ens_estimators.append(('sgd', clf_sgd0))
     clf_sgd0.fit(trainingdatasetquestions, trainingcorrectlabels)
     sgdquestionpredictions = clf_sgd0.predict(trainingdatasetquestions)
     sgdtestquestionpredictions = clf_sgd0.predict(testingdatasetquestions)
     
     clf_sgd1 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    total_ens_estimators.append('sgd', clf_sgd1)
+    total_ens_estimators.append(('sgd', clf_sgd1))
     clf_sgd1.fit(trainingdatasettotals, trainingcorrectlabels)
     sgdpredictions = clf_sgd1.predict(trainingdatasettotals)
     sgdtestpredictions = clf_sgd1.predict(testingdatasettotals)
     
     clf_sgd2 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    preference_ens_estimators.append('sgd', clf_sgd2)
+    preference_ens_estimators.append(('sgd', clf_sgd2))
     clf_sgd2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     sgdpreferencepredictions = clf_sgd2.predict(trainingdatasetpreferences)
     sgdtestpreferencepredictions = clf_sgd2.predict(testingdatasetpreferences)
     
     clf_logistic0 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    individual_ens_estimators.append('log_reg', clf_logistic0)
+    individual_ens_estimators.append(('log_reg', clf_logistic0))
     clf_logistic0.fit(trainingdatasetquestions, trainingcorrectlabels)
     logisticquestionpredictions = clf_logistic0.predict(trainingdatasetquestions)
     logistictestquestionpredictions = clf_logistic0.predict(testingdatasetquestions)
     
     clf_logistic1 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    total_ens_estimators.append('log_reg', clf_logistic1)
+    total_ens_estimators.append(('log_reg', clf_logistic1))
     clf_logistic1.fit(trainingdatasettotals, trainingcorrectlabels)
     logisticpredictions = clf_logistic1.predict(trainingdatasettotals)
     logistictestpredictions = clf_logistic1.predict(testingdatasettotals)
     
     clf_logistic2 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    preference_ens_estimators.append('log_reg', clf_logistic2)
+    preference_ens_estimators.append(('log_reg', clf_logistic2))
     clf_logistic2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     logisticpreferencepredictions = clf_logistic2.predict(trainingdatasetpreferences)
     logistictestpreferencepredictions = clf_logistic2.predict(testingdatasetpreferences)
     
     clf_decisiontree0 = DecisionTreeClassifier(max_depth=20)
-    individual_ens_estimators.append('dt', clf_decisiontree0)
+    individual_ens_estimators.append(('dt', clf_decisiontree0))
     clf_decisiontree0.fit(trainingdatasetquestions, trainingcorrectlabels)
     decisiontreequestionpredictions = clf_decisiontree0.predict(trainingdatasetquestions)
     decisiontreetestquestionpredictions = clf_decisiontree0.predict(testingdatasetquestions)
     
     clf_decisiontree1 = DecisionTreeClassifier(max_depth=20)
-    total_ens_estimators.append('dt', clf_decisiontree1)
+    total_ens_estimators.append(('dt', clf_decisiontree1))
     clf_decisiontree1.fit(trainingdatasettotals, trainingcorrectlabels)
     decisiontreepredictions = clf_decisiontree1.predict(trainingdatasettotals)
     decisiontreetestpredictions = clf_decisiontree1.predict(testingdatasettotals)
     
     clf_decisiontree2 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append('dt', clf_decisiontree2)
+    preference_ens_estimators.append(('dt', clf_decisiontree2))
     clf_decisiontree2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     decisiontreepreferencepredictions = clf_decisiontree2.predict(trainingdatasetpreferences)
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
@@ -957,7 +957,7 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     print("Able to predict neuroticism based on individual training totals using ensemble of the above with %{} accuracy".format(totals_voting_training_accuracy))
     print("Able to predict neuroticism based on individual training totals using ensemble of the above with %{} accuracy".format(totals_voting_training_accuracy), file=file_out)
 
-    votingtesttotalspredictions = individual_voting.predict(testingdatasettotals)
+    votingtesttotalspredictions = totals_voting.predict(testingdatasettotals)
     totals_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtesttotalspredictions)
 
     print("Able to predict neuroticism based on individual testing totals using ensemble of the above with %{} accuracy".format(totals_voting_testing_accuracy))
@@ -965,14 +965,14 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
 
     preferences_voting = VotingClassifier(estimators=preference_ens_estimators)
     preferences_voting.fit(trainingdatasetpreferences, trainingcorrectlabels)
-    preferencestotalpredictions = totals_voting.predict(trainingdatasetpreferences)
+    preferencestotalpredictions = preferences_voting.predict(trainingdatasetpreferences)
 
     preferences_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, preferencestotalpredictions)
 
     print("Able to predict neuroticism based on individual training preferences using ensemble of the above with %{} accuracy".format(preferences_voting_training_accuracy))
     print("Able to predict neuroticism based on individual training preferences using ensemble of the above with %{} accuracy".format(preferences_voting_training_accuracy), file=file_out)
 
-    votingtestpreferencespredictions = individual_voting.predict(testingdatasetpreferences)
+    votingtestpreferencespredictions = preferences_voting.predict(testingdatasetpreferences)
     preferences_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpreferencespredictions)
 
     print("Able to predict neuroticism based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy))
@@ -999,73 +999,73 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     testingcorrectlabels = alltestingdatasetpreferences[:,2] # Select preferences for agreeableness corresponding to columns
 
     clf_percept0 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    individual_ens_estimators.append('perceptron', clf_percept0)
+    individual_ens_estimators.append(('perceptron', clf_percept0))
     clf_percept0.fit(trainingdatasetquestions, trainingcorrectlabels, sample_weight=None)
     perceptquestionpredictions = clf_percept0.predict(trainingdatasetquestions)
     testquestionpredictions = clf_percept0.predict(testingdatasetquestions)
 
     clf_percept1 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    total_ens_estimators.append('perceptron', clf_percept1)
+    total_ens_estimators.append(('perceptron', clf_percept1))
     clf_percept1.fit(trainingdatasettotals, trainingcorrectlabels, sample_weight=None)
     perceptpredictions = clf_percept1.predict(trainingdatasettotals)
     testpredictions = clf_percept1.predict(testingdatasettotals)
 
     clf_percept2 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    preference_ens_estimators.append('perceptron', clf_percept2)
+    preference_ens_estimators.append(('perceptron', clf_percept2))
     clf_percept2.fit(trainingdatasetpreferences, trainingcorrectlabels, sample_weight=None)
     preferencepredictions = clf_percept2.predict(trainingdatasetpreferences)
     testpreferencepredictions = clf_percept2.predict(testingdatasetpreferences)
     
     clf_sgd0 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    individual_ens_estimators.append('sgd', clf_sgd0)
+    individual_ens_estimators.append(('sgd', clf_sgd0))
     clf_sgd0.fit(trainingdatasetquestions, trainingcorrectlabels)
     sgdquestionpredictions = clf_sgd0.predict(trainingdatasetquestions)
     sgdtestquestionpredictions = clf_sgd0.predict(testingdatasetquestions)
     
     clf_sgd1 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    total_ens_estimators.append('sgd', clf_sgd1)
+    total_ens_estimators.append(('sgd', clf_sgd1))
     clf_sgd1.fit(trainingdatasettotals, trainingcorrectlabels)
     sgdpredictions = clf_sgd1.predict(trainingdatasettotals)
     sgdtestpredictions = clf_sgd1.predict(testingdatasettotals)
     
     clf_sgd2 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    preference_ens_estimators.append('sgd', clf_sgd2)
+    preference_ens_estimators.append(('sgd', clf_sgd2))
     clf_sgd2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     sgdpreferencepredictions = clf_sgd2.predict(trainingdatasetpreferences)
     sgdtestpreferencepredictions = clf_sgd2.predict(testingdatasetpreferences)
     
     clf_logistic0 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    individual_ens_estimators.append('log_reg', clf_logistic0)
+    individual_ens_estimators.append(('log_reg', clf_logistic0))
     clf_logistic0.fit(trainingdatasetquestions, trainingcorrectlabels)
     logisticquestionpredictions = clf_logistic0.predict(trainingdatasetquestions)
     logistictestquestionpredictions = clf_logistic0.predict(testingdatasetquestions)
     
     clf_logistic1 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    total_ens_estimators.append('log_reg', clf_logistic1)
+    total_ens_estimators.append(('log_reg', clf_logistic1))
     clf_logistic1.fit(trainingdatasettotals, trainingcorrectlabels)
     logisticpredictions = clf_logistic1.predict(trainingdatasettotals)
     logistictestpredictions = clf_logistic1.predict(testingdatasettotals)
     
     clf_logistic2 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    preference_ens_estimators.append('log_reg', clf_logistic2)
+    preference_ens_estimators.append(('log_reg', clf_logistic2))
     clf_logistic2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     logisticpreferencepredictions = clf_logistic2.predict(trainingdatasetpreferences)
     logistictestpreferencepredictions = clf_logistic2.predict(testingdatasetpreferences)
     
     clf_decisiontree0 = DecisionTreeClassifier(max_depth=20)
-    individual_ens_estimators.append('dt', clf_decisiontree0)
+    individual_ens_estimators.append(('dt', clf_decisiontree0))
     clf_decisiontree0.fit(trainingdatasetquestions, trainingcorrectlabels)
     decisiontreequestionpredictions = clf_decisiontree0.predict(trainingdatasetquestions)
     decisiontreetestquestionpredictions = clf_decisiontree0.predict(testingdatasetquestions)
     
     clf_decisiontree1 = DecisionTreeClassifier(max_depth=20)
-    total_ens_estimators.append('dt', clf_decisiontree1)
+    total_ens_estimators.append(('dt', clf_decisiontree1))
     clf_decisiontree1.fit(trainingdatasettotals, trainingcorrectlabels)
     decisiontreepredictions = clf_decisiontree1.predict(trainingdatasettotals)
     decisiontreetestpredictions = clf_decisiontree1.predict(testingdatasettotals)
     
     clf_decisiontree2 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append('dt', clf_decisiontree2)
+    preference_ens_estimators.append(('dt', clf_decisiontree2))
     clf_decisiontree2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     decisiontreepreferencepredictions = clf_decisiontree2.predict(trainingdatasetpreferences)
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
@@ -1214,7 +1214,7 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     print("Able to predict agreeableness based on individual training totals using ensemble of the above with %{} accuracy".format(totals_voting_training_accuracy))
     print("Able to predict agreeableness based on individual training totals using ensemble of the above with %{} accuracy".format(totals_voting_training_accuracy), file=file_out)
 
-    votingtesttotalspredictions = individual_voting.predict(testingdatasettotals)
+    votingtesttotalspredictions = totals_voting.predict(testingdatasettotals)
     totals_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtesttotalspredictions)
 
     print("Able to predict agreeableness based on individual testing totals using ensemble of the above with %{} accuracy".format(totals_voting_testing_accuracy))
@@ -1222,14 +1222,14 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
 
     preferences_voting = VotingClassifier(estimators=preference_ens_estimators)
     preferences_voting.fit(trainingdatasetpreferences, trainingcorrectlabels)
-    preferencestotalpredictions = totals_voting.predict(trainingdatasetpreferences)
+    preferencestotalpredictions = preferences_voting.predict(trainingdatasetpreferences)
 
     preferences_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, preferencestotalpredictions)
 
     print("Able to predict agreeableness based on individual training preferences using ensemble of the above with %{} accuracy".format(preferences_voting_training_accuracy))
     print("Able to predict agreeableness based on individual training preferences using ensemble of the above with %{} accuracy".format(preferences_voting_training_accuracy), file=file_out)
 
-    votingtestpreferencespredictions = individual_voting.predict(testingdatasetpreferences)
+    votingtestpreferencespredictions = preferences_voting.predict(testingdatasetpreferences)
     preferences_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpreferencespredictions)
 
     print("Able to predict agreeableness based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy))
@@ -1256,73 +1256,73 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     testingcorrectlabels = alltestingdatasetpreferences[:,3] # Select preferences for conscientiousness corresponding to columns
 
     clf_percept0 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    individual_ens_estimators.append('perceptron', clf_percept0)
+    individual_ens_estimators.append(('perceptron', clf_percept0))
     clf_percept0.fit(trainingdatasetquestions, trainingcorrectlabels, sample_weight=None)
     perceptquestionpredictions = clf_percept0.predict(trainingdatasetquestions)
     testquestionpredictions = clf_percept0.predict(testingdatasetquestions)
 
     clf_percept1 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    total_ens_estimators.append('perceptron', clf_percept1)
+    total_ens_estimators.append(('perceptron', clf_percept1))
     clf_percept1.fit(trainingdatasettotals, trainingcorrectlabels, sample_weight=None)
     perceptpredictions = clf_percept1.predict(trainingdatasettotals)
     testpredictions = clf_percept1.predict(testingdatasettotals)
 
     clf_percept2 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    preference_ens_estimators.append('perceptron', clf_percept2)
+    preference_ens_estimators.append(('perceptron', clf_percept2))
     clf_percept2.fit(trainingdatasetpreferences, trainingcorrectlabels, sample_weight=None)
     preferencepredictions = clf_percept2.predict(trainingdatasetpreferences)
     testpreferencepredictions = clf_percept2.predict(testingdatasetpreferences)
     
     clf_sgd0 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    individual_ens_estimators.append('sgd', clf_sgd0)
+    individual_ens_estimators.append(('sgd', clf_sgd0))
     clf_sgd0.fit(trainingdatasetquestions, trainingcorrectlabels)
     sgdquestionpredictions = clf_sgd0.predict(trainingdatasetquestions)
     sgdtestquestionpredictions = clf_sgd0.predict(testingdatasetquestions)
     
     clf_sgd1 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    total_ens_estimators.append('sgd', clf_sgd1)
+    total_ens_estimators.append(('sgd', clf_sgd1))
     clf_sgd1.fit(trainingdatasettotals, trainingcorrectlabels)
     sgdpredictions = clf_sgd1.predict(trainingdatasettotals)
     sgdtestpredictions = clf_sgd1.predict(testingdatasettotals)
     
     clf_sgd2 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    preference_ens_estimators.append('sgd', clf_sgd2)
+    preference_ens_estimators.append(('sgd', clf_sgd2))
     clf_sgd2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     sgdpreferencepredictions = clf_sgd2.predict(trainingdatasetpreferences)
     sgdtestpreferencepredictions = clf_sgd2.predict(testingdatasetpreferences)
     
     clf_logistic0 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    individual_ens_estimators.append('log_reg', clf_logistic0)
+    individual_ens_estimators.append(('log_reg', clf_logistic0))
     clf_logistic0.fit(trainingdatasetquestions, trainingcorrectlabels)
     logisticquestionpredictions = clf_logistic0.predict(trainingdatasetquestions)
     logistictestquestionpredictions = clf_logistic0.predict(testingdatasetquestions)
     
     clf_logistic1 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    total_ens_estimators.append('log_reg', clf_logistic1)
+    total_ens_estimators.append(('log_reg', clf_logistic1))
     clf_logistic1.fit(trainingdatasettotals, trainingcorrectlabels)
     logisticpredictions = clf_logistic1.predict(trainingdatasettotals)
     logistictestpredictions = clf_logistic1.predict(testingdatasettotals)
     
     clf_logistic2 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    preference_ens_estimators.append('log_reg', clf_logistic2)
+    preference_ens_estimators.append(('log_reg', clf_logistic2))
     clf_logistic2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     logisticpreferencepredictions = clf_logistic2.predict(trainingdatasetpreferences)
     logistictestpreferencepredictions = clf_logistic2.predict(testingdatasetpreferences)
     
     clf_decisiontree0 = DecisionTreeClassifier(max_depth=20)
-    individual_ens_estimators.append('dt', clf_decisiontree0)
+    individual_ens_estimators.append(('dt', clf_decisiontree0))
     clf_decisiontree0.fit(trainingdatasetquestions, trainingcorrectlabels)
     decisiontreequestionpredictions = clf_decisiontree0.predict(trainingdatasetquestions)
     decisiontreetestquestionpredictions = clf_decisiontree0.predict(testingdatasetquestions)
     
     clf_decisiontree1 = DecisionTreeClassifier(max_depth=20)
-    total_ens_estimators.append('dt', clf_decisiontree1)
+    total_ens_estimators.append(('dt', clf_decisiontree1))
     clf_decisiontree1.fit(trainingdatasettotals, trainingcorrectlabels)
     decisiontreepredictions = clf_decisiontree1.predict(trainingdatasettotals)
     decisiontreetestpredictions = clf_decisiontree1.predict(testingdatasettotals)
     
     clf_decisiontree2 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append('dt', clf_decisiontree2)
+    preference_ens_estimators.append(('dt', clf_decisiontree2))
     clf_decisiontree2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     decisiontreepreferencepredictions = clf_decisiontree2.predict(trainingdatasetpreferences)
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
@@ -1471,7 +1471,7 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     print("Able to predict conscientiousness based on individual training totals using ensemble of the above with %{} accuracy".format(totals_voting_training_accuracy))
     print("Able to predict conscientiousness based on individual training totals using ensemble of the above with %{} accuracy".format(totals_voting_training_accuracy), file=file_out)
 
-    votingtesttotalspredictions = individual_voting.predict(testingdatasettotals)
+    votingtesttotalspredictions = totals_voting.predict(testingdatasettotals)
     totals_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtesttotalspredictions)
 
     print("Able to predict conscientiousness based on individual testing totals using ensemble of the above with %{} accuracy".format(totals_voting_testing_accuracy))
@@ -1479,14 +1479,14 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
 
     preferences_voting = VotingClassifier(estimators=preference_ens_estimators)
     preferences_voting.fit(trainingdatasetpreferences, trainingcorrectlabels)
-    preferencestotalpredictions = totals_voting.predict(trainingdatasetpreferences)
+    preferencestotalpredictions = preferences_voting.predict(trainingdatasetpreferences)
 
     preferences_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, preferencestotalpredictions)
 
     print("Able to predict conscientiousness based on individual training preferences using ensemble of the above with %{} accuracy".format(preferences_voting_training_accuracy))
     print("Able to predict conscientiousness based on individual training preferences using ensemble of the above with %{} accuracy".format(preferences_voting_training_accuracy), file=file_out)
 
-    votingtestpreferencespredictions = individual_voting.predict(testingdatasetpreferences)
+    votingtestpreferencespredictions = preferences_voting.predict(testingdatasetpreferences)
     preferences_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpreferencespredictions)
 
     print("Able to predict conscientiousness based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy))
@@ -1513,73 +1513,73 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     testingcorrectlabels = alltestingdatasetpreferences[:,4] # Select preferences for openness corresponding to columns
 
     clf_percept0 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    individual_ens_estimators.append('perceptron', clf_percept0)
+    individual_ens_estimators.append(('perceptron', clf_percept0))
     clf_percept0.fit(trainingdatasetquestions, trainingcorrectlabels, sample_weight=None)
     perceptquestionpredictions = clf_percept0.predict(trainingdatasetquestions)
     testquestionpredictions = clf_percept0.predict(testingdatasetquestions)
 
     clf_percept1 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    total_ens_estimators.append('perceptron', clf_percept1)
+    total_ens_estimators.append(('perceptron', clf_percept1))
     clf_percept1.fit(trainingdatasettotals, trainingcorrectlabels, sample_weight=None)
     perceptpredictions = clf_percept1.predict(trainingdatasettotals)
     testpredictions = clf_percept1.predict(testingdatasettotals)
 
     clf_percept2 = Perceptron(max_iter=20, random_state=0, eta0=1)
-    preference_ens_estimators.append('perceptron', clf_percept2)
+    preference_ens_estimators.append(('perceptron', clf_percept2))
     clf_percept2.fit(trainingdatasetpreferences, trainingcorrectlabels, sample_weight=None)
     preferencepredictions = clf_percept2.predict(trainingdatasetpreferences)
     testpreferencepredictions = clf_percept2.predict(testingdatasetpreferences)
     
     clf_sgd0 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    individual_ens_estimators.append('sgd', clf_sgd0)
+    individual_ens_estimators.append(('sgd', clf_sgd0))
     clf_sgd0.fit(trainingdatasetquestions, trainingcorrectlabels)
     sgdquestionpredictions = clf_sgd0.predict(trainingdatasetquestions)
     sgdtestquestionpredictions = clf_sgd0.predict(testingdatasetquestions)
     
     clf_sgd1 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    total_ens_estimators.append('sgd', clf_sgd1)
+    total_ens_estimators.append(('sgd', clf_sgd1))
     clf_sgd1.fit(trainingdatasettotals, trainingcorrectlabels)
     sgdpredictions = clf_sgd1.predict(trainingdatasettotals)
     sgdtestpredictions = clf_sgd1.predict(testingdatasettotals)
     
     clf_sgd2 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
-    preference_ens_estimators.append('sgd', clf_sgd2)
+    preference_ens_estimators.append(('sgd', clf_sgd2))
     clf_sgd2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     sgdpreferencepredictions = clf_sgd2.predict(trainingdatasetpreferences)
     sgdtestpreferencepredictions = clf_sgd2.predict(testingdatasetpreferences)
     
     clf_logistic0 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    individual_ens_estimators.append('log_reg', clf_logistic0)
+    individual_ens_estimators.append(('log_reg', clf_logistic0))
     clf_logistic0.fit(trainingdatasetquestions, trainingcorrectlabels)
     logisticquestionpredictions = clf_logistic0.predict(trainingdatasetquestions)
     logistictestquestionpredictions = clf_logistic0.predict(testingdatasetquestions)
     
     clf_logistic1 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    total_ens_estimators.append('log_reg', clf_logistic1)
+    total_ens_estimators.append(('log_reg', clf_logistic1))
     clf_logistic1.fit(trainingdatasettotals, trainingcorrectlabels)
     logisticpredictions = clf_logistic1.predict(trainingdatasettotals)
     logistictestpredictions = clf_logistic1.predict(testingdatasettotals)
     
     clf_logistic2 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    preference_ens_estimators.append('log_reg', clf_logistic2)
+    preference_ens_estimators.append(('log_reg', clf_logistic2))
     clf_logistic2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     logisticpreferencepredictions = clf_logistic2.predict(trainingdatasetpreferences)
     logistictestpreferencepredictions = clf_logistic2.predict(testingdatasetpreferences)
     
     clf_decisiontree0 = DecisionTreeClassifier(max_depth=20)
-    individual_ens_estimators.append('dt', clf_decisiontree0)
+    individual_ens_estimators.append(('dt', clf_decisiontree0))
     clf_decisiontree0.fit(trainingdatasetquestions, trainingcorrectlabels)
     decisiontreequestionpredictions = clf_decisiontree0.predict(trainingdatasetquestions)
     decisiontreetestquestionpredictions = clf_decisiontree0.predict(testingdatasetquestions)
     
     clf_decisiontree1 = DecisionTreeClassifier(max_depth=20)
-    total_ens_estimators.append('dt', clf_decisiontree1)
+    total_ens_estimators.append(('dt', clf_decisiontree1))
     clf_decisiontree1.fit(trainingdatasettotals, trainingcorrectlabels)
     decisiontreepredictions = clf_decisiontree1.predict(trainingdatasettotals)
     decisiontreetestpredictions = clf_decisiontree1.predict(testingdatasettotals)
     
     clf_decisiontree2 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append('dt', clf_decisiontree2)
+    preference_ens_estimators.append(('dt', clf_decisiontree2))
     clf_decisiontree2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     decisiontreepreferencepredictions = clf_decisiontree2.predict(trainingdatasetpreferences)
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
@@ -1728,7 +1728,7 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     print("Able to predict openness based on individual training totals using ensemble of the above with %{} accuracy".format(totals_voting_training_accuracy))
     print("Able to predict openness based on individual training totals using ensemble of the above with %{} accuracy".format(totals_voting_training_accuracy), file=file_out)
 
-    votingtesttotalspredictions = individual_voting.predict(testingdatasettotals)
+    votingtesttotalspredictions = totals_voting.predict(testingdatasettotals)
     totals_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtesttotalspredictions)
 
     print("Able to predict openness based on individual testing totals using ensemble of the above with %{} accuracy".format(totals_voting_testing_accuracy))
@@ -1736,14 +1736,14 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
 
     preferences_voting = VotingClassifier(estimators=preference_ens_estimators)
     preferences_voting.fit(trainingdatasetpreferences, trainingcorrectlabels)
-    preferencestotalpredictions = totals_voting.predict(trainingdatasetpreferences)
+    preferencestotalpredictions = preferences_voting.predict(trainingdatasetpreferences)
 
     preferences_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, preferencestotalpredictions)
 
     print("Able to predict openness based on individual training preferences using ensemble of the above with %{} accuracy".format(preferences_voting_training_accuracy))
     print("Able to predict openness based on individual training preferences using ensemble of the above with %{} accuracy".format(preferences_voting_training_accuracy), file=file_out)
 
-    votingtestpreferencespredictions = individual_voting.predict(testingdatasetpreferences)
+    votingtestpreferencespredictions = preferences_voting.predict(testingdatasetpreferences)
     preferences_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpreferencespredictions)
 
     print("Able to predict openness based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy))
