@@ -14,6 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import normalize
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import resample
+from sklearn.decomposition import PCA
 
 allUsersQuestions = {}
 allQuestions = {}
@@ -466,13 +467,43 @@ def PerceptronForPruningMultiplePredictions(dataset, datasetpreferences, charact
 
     return maxweightindexes
 
+def PCAQuestionsSeparated(dataset, traitbeingpredicted):
+    pcadataset = []
+    pca = PCA(0.50)
+    if (traitbeingpredicted != "Extroversion"):
+        pca.fit(dataset[:, 0:10])
+        pcadataset.extend(pca.transform(dataset[:, 0:10]))
+    if (traitbeingpredicted != "Neuroticism"):
+        pca.fit(dataset[:, 10:20])
+        pcadataset.extend(pca.transform(dataset[:, 10:20]))
+    if (traitbeingpredicted != "Agreeableness"):
+        pca.fit(dataset[:, 20:30])
+        pcadataset.extend(pca.transform(dataset[:, 20:30]))
+    if (traitbeingpredicted != "Conscientiousness"):
+        pca.fit(dataset[:, 30:40])
+        pcadataset.extend(pca.transform(dataset[:, 30:40]))
+    if (traitbeingpredicted != "Openness"):
+        pca.fit(dataset[:, 40:50])
+        pcadataset.extend(pca.transform(dataset[:, 40:50]))
+    return pcadataset
+
+def PCAQuestions(dataset):
+    pca = PCA(0.50)
+    pca.fit(dataset)
+    pcadataset = pca.transform(dataset)
+    return pcadataset
+
 def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatasettotals, alltrainingdatasetpreferences, alltestingdatasetquestions, alltestingdatasettotals, alltestingdatasetpreferences):
 
     individual_ens_estimators = []
     total_ens_estimators = []
     preference_ens_estimators = []
+    pca_ens_estimators = []
+    pcaseparated_ens_estimators = []
 
     trainingdatasetquestions = alltrainingdatasetquestions[:,10:] # Select all question columns not pertaining to extroversion
+    pca_trainingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, "Extroversion") # PCA guarenteeing the use of all five question types separately
+    pca_trainingdatasetquestions = PCAQuestions(trainingdatasetquestions) # PCA where questions may be combined
     trainingdatasettotals = alltrainingdatasettotals[:,1:] # Select all total columns but extroversion
     trainingdatasetpreferences = alltrainingdatasetpreferences[:,1:] # Select all preference columns but extroversion
     trainingcorrectlabels = alltrainingdatasetpreferences[:,0] # Select preferences for extroversion corresponding to columns
@@ -480,6 +511,8 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     trainingcorrectlabels = np.transpose(trainingcorrectlabels)
 
     testingdatasetquestions = alltestingdatasetquestions[:,10:] # Select all question columns not pertaining to extroversion
+    pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltestingdatasetquestions, "Extroversion") # PCA guarenteeing the use of all five question types separately
+    pca_testingdatasetquestions = PCAQuestions(testingdatasetquestions) # PCA where questions may be combined
     testingdatasettotals = alltestingdatasettotals[:,1:] # Select all columns but extroversion
     testingdatasetpreferences = alltestingdatasetpreferences[:,1:] # Select all preference columns but extroversion
     testingcorrectlabels = alltestingdatasetpreferences[:,0] # Select preferences for extroversion corresponding to columns
@@ -501,6 +534,18 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     clf_percept2.fit(trainingdatasetpreferences, trainingcorrectlabels, sample_weight=None)
     preferencepredictions = clf_percept2.predict(trainingdatasetpreferences)
     testpreferencepredictions = clf_percept2.predict(testingdatasetpreferences)
+
+    clf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
+    pca_ens_estimators.append(('perceptron', clf_percept3))
+    clf_percept3.fit(pca_trainingdatasetquestions, trainingcorrectlabels, sample_weight=None)
+    pcapredictions = clf_percept3.predict(pca_trainingdatasetquestions)
+    testpcapredictions = clf_percept3.predict(pca_testingdatasetquestions)
+
+    clf_percept4 = Perceptron(max_iter=20, random_state=0, eta0=1)
+    pcaseparated_ens_estimators.append(('perceptron', clf_percept4))
+    clf_percept4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels, sample_weight=None)
+    pcaseparatedpredictions = clf_percept4.predict(pca_trainingdatasetquestionsseparated)
+    testpcaseparatedpredictions = clf_percept4.predict(pca_testingdatasetquestionsseparated)
     
     clf_sgd0 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
     individual_ens_estimators.append(('sgd', clf_sgd0))
@@ -520,6 +565,18 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     sgdpreferencepredictions = clf_sgd2.predict(trainingdatasetpreferences)
     sgdtestpreferencepredictions = clf_sgd2.predict(testingdatasetpreferences)
     
+    clf_sgd3 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    pca_ens_estimators.append(('sgd', clf_sgd3))
+    clf_sgd3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    sgdpcapredictions = clf_sgd3.predict(pca_trainingdatasetquestions)
+    sgdtestpcapredictions = clf_sgd3.predict(pca_testingdatasetquestions)
+    
+    clf_sgd4 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    pcaseparated_ens_estimators.append(('sgd', clf_sgd4))
+    clf_sgd4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    sgdpcaseparatedpredictions = clf_sgd4.predict(pca_trainingdatasetquestionsseparated)
+    sgdtestpcaseparatedpredictions = clf_sgd4.predict(pca_testingdatasetquestionsseparated)
+    
     clf_logistic0 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
     individual_ens_estimators.append(('log_reg', clf_logistic0))
     clf_logistic0.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -538,6 +595,18 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     logisticpreferencepredictions = clf_logistic2.predict(trainingdatasetpreferences)
     logistictestpreferencepredictions = clf_logistic2.predict(testingdatasetpreferences)
     
+    clf_logistic3 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    pca_ens_estimators.append(('log_reg', clf_logistic3))
+    clf_logistic3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    logisticpcapredictions = clf_logistic3.predict(pca_trainingdatasetquestions)
+    logistictestpcapredictions = clf_logistic3.predict(pca_testingdatasetquestions)
+    
+    clf_logistic4 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    pca_ens_estimators.append(('log_reg', clf_logistic4))
+    clf_logistic4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    logisticpcaseparatedpredictions = clf_logistic4.predict(pca_trainingdatasetquestionsseparated)
+    logistictestpcaseparatedpredictions = clf_logistic4.predict(pca_testingdatasetquestionsseparated)
+    
     clf_decisiontree0 = DecisionTreeClassifier(max_depth=20)
     individual_ens_estimators.append(('dt', clf_decisiontree0))
     clf_decisiontree0.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -555,6 +624,18 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     clf_decisiontree2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     decisiontreepreferencepredictions = clf_decisiontree2.predict(trainingdatasetpreferences)
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
+    
+    clf_decisiontree3 = DecisionTreeClassifier(max_depth=20)
+    preference_ens_estimators.append(('dt', clf_decisiontree3))
+    clf_decisiontree3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    decisiontreepcapredictions = clf_decisiontree3.predict(pca_trainingdatasetquestions)
+    decisiontreetestpcapredictions = clf_decisiontree3.predict(pca_testingdatasetquestions)
+    
+    clf_decisiontree4 = DecisionTreeClassifier(max_depth=20)
+    preference_ens_estimators.append(('dt', clf_decisiontree4))
+    clf_decisiontree4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    decisiontreepcaseparatedpredictions = clf_decisiontree4.predict(pca_trainingdatasetquestionsseparated)
+    decisiontreetestpcaseparatedpredictions = clf_decisiontree4.predict(pca_testingdatasetquestionsseparated)
 
     questions_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, perceptquestionpredictions)
 
@@ -728,15 +809,21 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     individual_ens_estimators = []
     total_ens_estimators = []
     preference_ens_estimators = []
+    pca_ens_estimators = []
+    pcaseparated_ens_estimators = []
 
     columnstodelete = list(range(10, 20))
 
     trainingdatasetquestions = np.delete(alltrainingdatasetquestions, columnstodelete, axis=1)
+    pca_trainingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, "Neuroticism") # PCA guarenteeing the use of all five question types separately
+    pca_trainingdatasetquestions = PCAQuestions(trainingdatasetquestions) # PCA where questions may be combined
     trainingdatasettotals = np.delete(alltrainingdatasettotals, 1, axis=1) # Select all columns but neuroticism
     trainingdatasetpreferences = np.delete(alltrainingdatasetpreferences, 1, axis=1) # Select all columns but neuroticism
     trainingcorrectlabels = alltrainingdatasetpreferences[:,1] # Select preferences for neuroticism corresponding to columns
     
     testingdatasetquestions = np.delete(alltestingdatasetquestions, columnstodelete, axis=1)
+    pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltestingdatasetquestions, "Neuroticism") # PCA guarenteeing the use of all five question types separately
+    pca_testingdatasetquestions = PCAQuestions(testingdatasetquestions) # PCA where questions may be combined
     testingdatasettotals = np.delete(alltestingdatasettotals, 1, axis=1) # Select all columns but neuroticism
     testingdatasetpreferences = np.delete(alltestingdatasetpreferences, 1, axis=1) # Select all columns but neuroticism
     testingcorrectlabels = alltestingdatasetpreferences[:,1] # Select preferences for neuroticism corresponding to columns
@@ -758,6 +845,18 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     clf_percept2.fit(trainingdatasetpreferences, trainingcorrectlabels, sample_weight=None)
     preferencepredictions = clf_percept2.predict(trainingdatasetpreferences)
     testpreferencepredictions = clf_percept2.predict(testingdatasetpreferences)
+
+    clf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
+    pca_ens_estimators.append(('perceptron', clf_percept3))
+    clf_percept3.fit(pca_trainingdatasetquestions, trainingcorrectlabels, sample_weight=None)
+    pcapredictions = clf_percept3.predict(pca_trainingdatasetquestions)
+    testpcapredictions = clf_percept3.predict(pca_testingdatasetquestions)
+
+    clf_percept4 = Perceptron(max_iter=20, random_state=0, eta0=1)
+    pcaseparated_ens_estimators.append(('perceptron', clf_percept4))
+    clf_percept4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels, sample_weight=None)
+    pcaseparatedpredictions = clf_percept4.predict(pca_trainingdatasetquestionsseparated)
+    testpcaseparatedpredictions = clf_percept4.predict(pca_testingdatasetquestionsseparated)
     
     clf_sgd0 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
     individual_ens_estimators.append(('sgd', clf_sgd0))
@@ -777,6 +876,18 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     sgdpreferencepredictions = clf_sgd2.predict(trainingdatasetpreferences)
     sgdtestpreferencepredictions = clf_sgd2.predict(testingdatasetpreferences)
     
+    clf_sgd3 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    pca_ens_estimators.append(('sgd', clf_sgd3))
+    clf_sgd3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    sgdpcapredictions = clf_sgd3.predict(pca_trainingdatasetquestions)
+    sgdtestpcapredictions = clf_sgd3.predict(pca_testingdatasetquestions)
+    
+    clf_sgd4 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    pcaseparated_ens_estimators.append(('sgd', clf_sgd4))
+    clf_sgd4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    sgdpcaseparatedpredictions = clf_sgd4.predict(pca_trainingdatasetquestionsseparated)
+    sgdtestpcaseparatedpredictions = clf_sgd4.predict(pca_testingdatasetquestionsseparated)
+    
     clf_logistic0 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
     individual_ens_estimators.append(('log_reg', clf_logistic0))
     clf_logistic0.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -795,6 +906,18 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     logisticpreferencepredictions = clf_logistic2.predict(trainingdatasetpreferences)
     logistictestpreferencepredictions = clf_logistic2.predict(testingdatasetpreferences)
     
+    clf_logistic3 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    pca_ens_estimators.append(('log_reg', clf_logistic3))
+    clf_logistic3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    logisticpcapredictions = clf_logistic3.predict(pca_trainingdatasetquestions)
+    logistictestpcapredictions = clf_logistic3.predict(pca_testingdatasetquestions)
+    
+    clf_logistic4 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    pca_ens_estimators.append(('log_reg', clf_logistic4))
+    clf_logistic4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    logisticpcaseparatedpredictions = clf_logistic4.predict(pca_trainingdatasetquestionsseparated)
+    logistictestpcaseparatedpredictions = clf_logistic4.predict(pca_testingdatasetquestionsseparated)
+    
     clf_decisiontree0 = DecisionTreeClassifier(max_depth=20)
     individual_ens_estimators.append(('dt', clf_decisiontree0))
     clf_decisiontree0.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -812,6 +935,18 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     clf_decisiontree2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     decisiontreepreferencepredictions = clf_decisiontree2.predict(trainingdatasetpreferences)
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
+    
+    clf_decisiontree3 = DecisionTreeClassifier(max_depth=20)
+    preference_ens_estimators.append(('dt', clf_decisiontree3))
+    clf_decisiontree3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    decisiontreepcapredictions = clf_decisiontree3.predict(pca_trainingdatasetquestions)
+    decisiontreetestpcapredictions = clf_decisiontree3.predict(pca_testingdatasetquestions)
+    
+    clf_decisiontree4 = DecisionTreeClassifier(max_depth=20)
+    preference_ens_estimators.append(('dt', clf_decisiontree4))
+    clf_decisiontree4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    decisiontreepcaseparatedpredictions = clf_decisiontree4.predict(pca_trainingdatasetquestionsseparated)
+    decisiontreetestpcaseparatedpredictions = clf_decisiontree4.predict(pca_testingdatasetquestionsseparated)
 
     questions_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, perceptquestionpredictions)
 
@@ -985,15 +1120,21 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     individual_ens_estimators = []
     total_ens_estimators = []
     preference_ens_estimators = []
+    pca_ens_estimators = []
+    pcaseparated_ens_estimators = []
 
     columnstodelete = list(range(20, 30))
 
     trainingdatasetquestions = np.delete(alltrainingdatasetquestions, columnstodelete, axis=1)
+    pca_trainingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, "Agreeableness") # PCA guarenteeing the use of all five question types separately
+    pca_trainingdatasetquestions = PCAQuestions(trainingdatasetquestions) # PCA where questions may be combined
     trainingdatasettotals = np.delete(alltrainingdatasettotals, 2, axis=1) # Select all columns but agreeableness
     trainingdatasetpreferences = np.delete(alltrainingdatasetpreferences, 2, axis=1) # Select all columns but agreeableness
     trainingcorrectlabels = alltrainingdatasetpreferences[:,2] # Select preferences for agreeableness corresponding to columns
     
     testingdatasetquestions = np.delete(alltestingdatasetquestions, columnstodelete, axis=1)
+    pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltestingdatasetquestions, "Agreeableness") # PCA guarenteeing the use of all five question types separately
+    pca_testingdatasetquestions = PCAQuestions(testingdatasetquestions) # PCA where questions may be combined
     testingdatasettotals = np.delete(alltestingdatasettotals, 2, axis=1) # Select all columns but agreeableness
     testingdatasetpreferences = np.delete(alltestingdatasetpreferences, 2, axis=1) # Select all columns but agreeableness
     testingcorrectlabels = alltestingdatasetpreferences[:,2] # Select preferences for agreeableness corresponding to columns
@@ -1015,6 +1156,18 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     clf_percept2.fit(trainingdatasetpreferences, trainingcorrectlabels, sample_weight=None)
     preferencepredictions = clf_percept2.predict(trainingdatasetpreferences)
     testpreferencepredictions = clf_percept2.predict(testingdatasetpreferences)
+
+    clf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
+    pca_ens_estimators.append(('perceptron', clf_percept3))
+    clf_percept3.fit(pca_trainingdatasetquestions, trainingcorrectlabels, sample_weight=None)
+    pcapredictions = clf_percept3.predict(pca_trainingdatasetquestions)
+    testpcapredictions = clf_percept3.predict(pca_testingdatasetquestions)
+
+    clf_percept4 = Perceptron(max_iter=20, random_state=0, eta0=1)
+    pcaseparated_ens_estimators.append(('perceptron', clf_percept4))
+    clf_percept4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels, sample_weight=None)
+    pcaseparatedpredictions = clf_percept4.predict(pca_trainingdatasetquestionsseparated)
+    testpcaseparatedpredictions = clf_percept4.predict(pca_testingdatasetquestionsseparated)
     
     clf_sgd0 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
     individual_ens_estimators.append(('sgd', clf_sgd0))
@@ -1034,6 +1187,18 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     sgdpreferencepredictions = clf_sgd2.predict(trainingdatasetpreferences)
     sgdtestpreferencepredictions = clf_sgd2.predict(testingdatasetpreferences)
     
+    clf_sgd3 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    pca_ens_estimators.append(('sgd', clf_sgd3))
+    clf_sgd3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    sgdpcapredictions = clf_sgd3.predict(pca_trainingdatasetquestions)
+    sgdtestpcapredictions = clf_sgd3.predict(pca_testingdatasetquestions)
+    
+    clf_sgd4 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    pcaseparated_ens_estimators.append(('sgd', clf_sgd4))
+    clf_sgd4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    sgdpcaseparatedpredictions = clf_sgd4.predict(pca_trainingdatasetquestionsseparated)
+    sgdtestpcaseparatedpredictions = clf_sgd4.predict(pca_testingdatasetquestionsseparated)
+    
     clf_logistic0 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
     individual_ens_estimators.append(('log_reg', clf_logistic0))
     clf_logistic0.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -1052,6 +1217,18 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     logisticpreferencepredictions = clf_logistic2.predict(trainingdatasetpreferences)
     logistictestpreferencepredictions = clf_logistic2.predict(testingdatasetpreferences)
     
+    clf_logistic3 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    pca_ens_estimators.append(('log_reg', clf_logistic3))
+    clf_logistic3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    logisticpcapredictions = clf_logistic3.predict(pca_trainingdatasetquestions)
+    logistictestpcapredictions = clf_logistic3.predict(pca_testingdatasetquestions)
+    
+    clf_logistic4 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    pca_ens_estimators.append(('log_reg', clf_logistic4))
+    clf_logistic4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    logisticpcaseparatedpredictions = clf_logistic4.predict(pca_trainingdatasetquestionsseparated)
+    logistictestpcaseparatedpredictions = clf_logistic4.predict(pca_testingdatasetquestionsseparated)
+    
     clf_decisiontree0 = DecisionTreeClassifier(max_depth=20)
     individual_ens_estimators.append(('dt', clf_decisiontree0))
     clf_decisiontree0.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -1069,6 +1246,18 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     clf_decisiontree2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     decisiontreepreferencepredictions = clf_decisiontree2.predict(trainingdatasetpreferences)
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
+    
+    clf_decisiontree3 = DecisionTreeClassifier(max_depth=20)
+    preference_ens_estimators.append(('dt', clf_decisiontree3))
+    clf_decisiontree3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    decisiontreepcapredictions = clf_decisiontree3.predict(pca_trainingdatasetquestions)
+    decisiontreetestpcapredictions = clf_decisiontree3.predict(pca_testingdatasetquestions)
+    
+    clf_decisiontree4 = DecisionTreeClassifier(max_depth=20)
+    preference_ens_estimators.append(('dt', clf_decisiontree4))
+    clf_decisiontree4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    decisiontreepcaseparatedpredictions = clf_decisiontree4.predict(pca_trainingdatasetquestionsseparated)
+    decisiontreetestpcaseparatedpredictions = clf_decisiontree4.predict(pca_testingdatasetquestionsseparated)
 
     questions_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, perceptquestionpredictions)
 
@@ -1242,15 +1431,21 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     individual_ens_estimators = []
     total_ens_estimators = []
     preference_ens_estimators = []
+    pca_ens_estimators = []
+    pcaseparated_ens_estimators = []
 
     columnstodelete = list(range(30, 40))
 
     trainingdatasetquestions = np.delete(alltrainingdatasetquestions, columnstodelete, axis=1)
+    pca_trainingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, "Conscientiousness") # PCA guarenteeing the use of all five question types separately
+    pca_trainingdatasetquestions = PCAQuestions(trainingdatasetquestions) # PCA where questions may be combined
     trainingdatasettotals = np.delete(alltrainingdatasettotals, 3, axis=1) # Select all columns but conscientiousness
     trainingdatasetpreferences = np.delete(alltrainingdatasetpreferences, 3, axis=1) # Select all columns but conscientiousness
     trainingcorrectlabels = alltrainingdatasetpreferences[:,3] # Select preferences for conscientiousness corresponding to columns
     
     testingdatasetquestions = np.delete(alltestingdatasetquestions, columnstodelete, axis=1)
+    pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltestingdatasetquestions, "Conscientiousness") # PCA guarenteeing the use of all five question types separately
+    pca_testingdatasetquestions = PCAQuestions(testingdatasetquestions) # PCA where questions may be combined
     testingdatasettotals = np.delete(alltestingdatasettotals, 3, axis=1) # Select all columns but conscientiousness
     testingdatasetpreferences = np.delete(alltestingdatasetpreferences, 3, axis=1) # Select all columns but conscientiousness
     testingcorrectlabels = alltestingdatasetpreferences[:,3] # Select preferences for conscientiousness corresponding to columns
@@ -1272,6 +1467,18 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     clf_percept2.fit(trainingdatasetpreferences, trainingcorrectlabels, sample_weight=None)
     preferencepredictions = clf_percept2.predict(trainingdatasetpreferences)
     testpreferencepredictions = clf_percept2.predict(testingdatasetpreferences)
+
+    clf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
+    pca_ens_estimators.append(('perceptron', clf_percept3))
+    clf_percept3.fit(pca_trainingdatasetquestions, trainingcorrectlabels, sample_weight=None)
+    pcapredictions = clf_percept3.predict(pca_trainingdatasetquestions)
+    testpcapredictions = clf_percept3.predict(pca_testingdatasetquestions)
+
+    clf_percept4 = Perceptron(max_iter=20, random_state=0, eta0=1)
+    pcaseparated_ens_estimators.append(('perceptron', clf_percept4))
+    clf_percept4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels, sample_weight=None)
+    pcaseparatedpredictions = clf_percept4.predict(pca_trainingdatasetquestionsseparated)
+    testpcaseparatedpredictions = clf_percept4.predict(pca_testingdatasetquestionsseparated)
     
     clf_sgd0 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
     individual_ens_estimators.append(('sgd', clf_sgd0))
@@ -1291,6 +1498,18 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     sgdpreferencepredictions = clf_sgd2.predict(trainingdatasetpreferences)
     sgdtestpreferencepredictions = clf_sgd2.predict(testingdatasetpreferences)
     
+    clf_sgd3 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    pca_ens_estimators.append(('sgd', clf_sgd3))
+    clf_sgd3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    sgdpcapredictions = clf_sgd3.predict(pca_trainingdatasetquestions)
+    sgdtestpcapredictions = clf_sgd3.predict(pca_testingdatasetquestions)
+    
+    clf_sgd4 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    pcaseparated_ens_estimators.append(('sgd', clf_sgd4))
+    clf_sgd4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    sgdpcaseparatedpredictions = clf_sgd4.predict(pca_trainingdatasetquestionsseparated)
+    sgdtestpcaseparatedpredictions = clf_sgd4.predict(pca_testingdatasetquestionsseparated)
+    
     clf_logistic0 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
     individual_ens_estimators.append(('log_reg', clf_logistic0))
     clf_logistic0.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -1309,6 +1528,18 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     logisticpreferencepredictions = clf_logistic2.predict(trainingdatasetpreferences)
     logistictestpreferencepredictions = clf_logistic2.predict(testingdatasetpreferences)
     
+    clf_logistic3 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    pca_ens_estimators.append(('log_reg', clf_logistic3))
+    clf_logistic3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    logisticpcapredictions = clf_logistic3.predict(pca_trainingdatasetquestions)
+    logistictestpcapredictions = clf_logistic3.predict(pca_testingdatasetquestions)
+    
+    clf_logistic4 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    pca_ens_estimators.append(('log_reg', clf_logistic4))
+    clf_logistic4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    logisticpcaseparatedpredictions = clf_logistic4.predict(pca_trainingdatasetquestionsseparated)
+    logistictestpcaseparatedpredictions = clf_logistic4.predict(pca_testingdatasetquestionsseparated)
+    
     clf_decisiontree0 = DecisionTreeClassifier(max_depth=20)
     individual_ens_estimators.append(('dt', clf_decisiontree0))
     clf_decisiontree0.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -1326,6 +1557,18 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     clf_decisiontree2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     decisiontreepreferencepredictions = clf_decisiontree2.predict(trainingdatasetpreferences)
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
+    
+    clf_decisiontree3 = DecisionTreeClassifier(max_depth=20)
+    preference_ens_estimators.append(('dt', clf_decisiontree3))
+    clf_decisiontree3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    decisiontreepcapredictions = clf_decisiontree3.predict(pca_trainingdatasetquestions)
+    decisiontreetestpcapredictions = clf_decisiontree3.predict(pca_testingdatasetquestions)
+    
+    clf_decisiontree4 = DecisionTreeClassifier(max_depth=20)
+    preference_ens_estimators.append(('dt', clf_decisiontree4))
+    clf_decisiontree4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    decisiontreepcaseparatedpredictions = clf_decisiontree4.predict(pca_trainingdatasetquestionsseparated)
+    decisiontreetestpcaseparatedpredictions = clf_decisiontree4.predict(pca_testingdatasetquestionsseparated)
 
     questions_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, perceptquestionpredictions)
 
@@ -1499,15 +1742,21 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     individual_ens_estimators = []
     total_ens_estimators = []
     preference_ens_estimators = []
+    pca_ens_estimators = []
+    pcaseparated_ens_estimators = []
 
     columnstodelete = list(range(40, 50))
 
     trainingdatasetquestions = np.delete(alltrainingdatasetquestions, columnstodelete, axis=1)
+    pca_trainingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, "Openness") # PCA guarenteeing the use of all five question types separately
+    pca_trainingdatasetquestions = PCAQuestions(trainingdatasetquestions) # PCA where questions may be combined
     trainingdatasettotals = np.delete(alltrainingdatasettotals, 4, axis=1) # Select all columns but openness
     trainingdatasetpreferences = np.delete(alltrainingdatasetpreferences, 4, axis=1) # Select all columns but openness
     trainingcorrectlabels = alltrainingdatasetpreferences[:,4] # Select preferences for openness corresponding to columns
     
     testingdatasetquestions = np.delete(alltestingdatasetquestions, columnstodelete, axis=1)
+    pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltestingdatasetquestions, "Openness") # PCA guarenteeing the use of all five question types separately
+    pca_testingdatasetquestions = PCAQuestions(testingdatasetquestions) # PCA where questions may be combined
     testingdatasettotals = np.delete(alltestingdatasettotals, 4, axis=1) # Select all columns but openness
     testingdatasetpreferences = np.delete(alltestingdatasetpreferences, 4, axis=1) # Select all columns but openness
     testingcorrectlabels = alltestingdatasetpreferences[:,4] # Select preferences for openness corresponding to columns
@@ -1529,6 +1778,18 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     clf_percept2.fit(trainingdatasetpreferences, trainingcorrectlabels, sample_weight=None)
     preferencepredictions = clf_percept2.predict(trainingdatasetpreferences)
     testpreferencepredictions = clf_percept2.predict(testingdatasetpreferences)
+
+    clf_percept3 = Perceptron(max_iter=20, random_state=0, eta0=1)
+    pca_ens_estimators.append(('perceptron', clf_percept3))
+    clf_percept3.fit(pca_trainingdatasetquestions, trainingcorrectlabels, sample_weight=None)
+    pcapredictions = clf_percept3.predict(pca_trainingdatasetquestions)
+    testpcapredictions = clf_percept3.predict(pca_testingdatasetquestions)
+
+    clf_percept4 = Perceptron(max_iter=20, random_state=0, eta0=1)
+    pcaseparated_ens_estimators.append(('perceptron', clf_percept4))
+    clf_percept4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels, sample_weight=None)
+    pcaseparatedpredictions = clf_percept4.predict(pca_trainingdatasetquestionsseparated)
+    testpcaseparatedpredictions = clf_percept4.predict(pca_testingdatasetquestionsseparated)
     
     clf_sgd0 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
     individual_ens_estimators.append(('sgd', clf_sgd0))
@@ -1548,6 +1809,18 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     sgdpreferencepredictions = clf_sgd2.predict(trainingdatasetpreferences)
     sgdtestpreferencepredictions = clf_sgd2.predict(testingdatasetpreferences)
     
+    clf_sgd3 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    pca_ens_estimators.append(('sgd', clf_sgd3))
+    clf_sgd3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    sgdpcapredictions = clf_sgd3.predict(pca_trainingdatasetquestions)
+    sgdtestpcapredictions = clf_sgd3.predict(pca_testingdatasetquestions)
+    
+    clf_sgd4 = SGDClassifier(loss="hinge", penalty="l2", max_iter=20)
+    pcaseparated_ens_estimators.append(('sgd', clf_sgd4))
+    clf_sgd4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    sgdpcaseparatedpredictions = clf_sgd4.predict(pca_trainingdatasetquestionsseparated)
+    sgdtestpcaseparatedpredictions = clf_sgd4.predict(pca_testingdatasetquestionsseparated)
+    
     clf_logistic0 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
     individual_ens_estimators.append(('log_reg', clf_logistic0))
     clf_logistic0.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -1566,6 +1839,18 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     logisticpreferencepredictions = clf_logistic2.predict(trainingdatasetpreferences)
     logistictestpreferencepredictions = clf_logistic2.predict(testingdatasetpreferences)
     
+    clf_logistic3 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    pca_ens_estimators.append(('log_reg', clf_logistic3))
+    clf_logistic3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    logisticpcapredictions = clf_logistic3.predict(pca_trainingdatasetquestions)
+    logistictestpcapredictions = clf_logistic3.predict(pca_testingdatasetquestions)
+    
+    clf_logistic4 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
+    pca_ens_estimators.append(('log_reg', clf_logistic4))
+    clf_logistic4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    logisticpcaseparatedpredictions = clf_logistic4.predict(pca_trainingdatasetquestionsseparated)
+    logistictestpcaseparatedpredictions = clf_logistic4.predict(pca_testingdatasetquestionsseparated)
+    
     clf_decisiontree0 = DecisionTreeClassifier(max_depth=20)
     individual_ens_estimators.append(('dt', clf_decisiontree0))
     clf_decisiontree0.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -1583,6 +1868,18 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     clf_decisiontree2.fit(trainingdatasetpreferences, trainingcorrectlabels)
     decisiontreepreferencepredictions = clf_decisiontree2.predict(trainingdatasetpreferences)
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
+    
+    clf_decisiontree3 = DecisionTreeClassifier(max_depth=20)
+    preference_ens_estimators.append(('dt', clf_decisiontree3))
+    clf_decisiontree3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    decisiontreepcapredictions = clf_decisiontree3.predict(pca_trainingdatasetquestions)
+    decisiontreetestpcapredictions = clf_decisiontree3.predict(pca_testingdatasetquestions)
+    
+    clf_decisiontree4 = DecisionTreeClassifier(max_depth=20)
+    preference_ens_estimators.append(('dt', clf_decisiontree4))
+    clf_decisiontree4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    decisiontreepcaseparatedpredictions = clf_decisiontree4.predict(pca_trainingdatasetquestionsseparated)
+    decisiontreetestpcaseparatedpredictions = clf_decisiontree4.predict(pca_testingdatasetquestionsseparated)
 
     questions_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, perceptquestionpredictions)
 
