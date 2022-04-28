@@ -174,12 +174,7 @@ def CleanDataForConsistency(dataset):
     return cleaneddataset
 
 def NormalizeIndividualQuestionsData(dataset):
-    normalized_array = []
-    normalized_array.extend(normalize(dataset[:, 0:10], norm="l1"))
-    normalized_array.extend(normalize(dataset[:, 10:20], norm="l1"))
-    normalized_array.extend(normalize(dataset[:, 20:30], norm="l1"))
-    normalized_array.extend(normalize(dataset[:, 30:40], norm="l1"))
-    normalized_array.extend(normalize(dataset[:, 40:50], norm="l1"))
+    normalized_array = np.column_stack((normalize(dataset[:, 0:10], norm="l1"), normalize(dataset[:, 10:20], norm="l1"), normalize(dataset[:, 20:30], norm="l1"), normalize(dataset[:, 30:40], norm="l1"), normalize(dataset[:, 40:50], norm="l1")))
     return normalized_array
 
 def NormalizeData(dataset):
@@ -467,31 +462,70 @@ def PerceptronForPruningMultiplePredictions(dataset, datasetpreferences, charact
 
     return maxweightindexes
 
-def PCAQuestionsSeparated(dataset, traitbeingpredicted):
-    pcadataset = []
-    pca = PCA(0.50)
-    if (traitbeingpredicted != "Extroversion"):
-        pca.fit(dataset[:, 0:10])
-        pcadataset.extend(pca.transform(dataset[:, 0:10]))
-    if (traitbeingpredicted != "Neuroticism"):
-        pca.fit(dataset[:, 10:20])
-        pcadataset.extend(pca.transform(dataset[:, 10:20]))
-    if (traitbeingpredicted != "Agreeableness"):
-        pca.fit(dataset[:, 20:30])
-        pcadataset.extend(pca.transform(dataset[:, 20:30]))
-    if (traitbeingpredicted != "Conscientiousness"):
-        pca.fit(dataset[:, 30:40])
-        pcadataset.extend(pca.transform(dataset[:, 30:40]))
-    if (traitbeingpredicted != "Openness"):
-        pca.fit(dataset[:, 40:50])
-        pcadataset.extend(pca.transform(dataset[:, 40:50]))
-    return pcadataset
+def PCAQuestionsSeparated(trainingdataset, testingdataset, traitbeingpredicted):
+    
+    print("PCAQUESTIONSSEPARATED")
+    print(trainingdataset.shape)
+    print(testingdataset.shape)
 
-def PCAQuestions(dataset):
-    pca = PCA(0.50)
-    pca.fit(dataset)
-    pcadataset = pca.transform(dataset)
-    return pcadataset
+    pca = PCA(0.8)
+    if (traitbeingpredicted != "Extroversion"):
+        pca.fit(trainingdataset[:, 0:10])
+        pcatrainingdataset1 = pca.transform(trainingdataset[:, 0:10])
+        pcatestingdataset1 = pca.transform(testingdataset[:, 0:10])
+    if (traitbeingpredicted != "Neuroticism"):
+        pca.fit(trainingdataset[:, 10:20])
+        pcatrainingdataset2 = pca.transform(trainingdataset[:, 10:20])
+        pcatestingdataset2 = pca.transform(testingdataset[:, 10:20])
+    if (traitbeingpredicted != "Agreeableness"):
+        pca.fit(trainingdataset[:, 20:30])
+        pcatrainingdataset3 = pca.transform(trainingdataset[:, 20:30])
+        pcatestingdataset3 = pca.transform(testingdataset[:, 20:30])
+    if (traitbeingpredicted != "Conscientiousness"):
+        pca.fit(trainingdataset[:, 30:40])
+        pcatrainingdataset4 = pca.transform(trainingdataset[:, 30:40])
+        pcatestingdataset4 = pca.transform(testingdataset[:, 30:40])
+    if (traitbeingpredicted != "Openness"):
+        pca.fit(trainingdataset[:, 40:50])
+        pcatrainingdataset5 = pca.transform(trainingdataset[:, 40:50])
+        pcatestingdataset5 = pca.transform(testingdataset[:, 40:50])
+    if (traitbeingpredicted == "Extroversion"):
+        pcatrainingdataset = np.column_stack((pcatrainingdataset2, pcatrainingdataset3, pcatrainingdataset4, pcatrainingdataset5))
+        pcatestingdataset = np.column_stack((pcatestingdataset2, pcatestingdataset3, pcatestingdataset4, pcatestingdataset5))
+    if (traitbeingpredicted == "Neuroticism"):
+        pcatrainingdataset = np.column_stack((pcatrainingdataset1, pcatrainingdataset3, pcatrainingdataset4, pcatrainingdataset5))
+        pcatestingdataset = np.column_stack((pcatestingdataset1, pcatestingdataset3, pcatestingdataset4, pcatestingdataset5))
+    if (traitbeingpredicted == "Agreeableness"):
+        pcatrainingdataset = np.column_stack((pcatrainingdataset1, pcatrainingdataset2, pcatrainingdataset4, pcatrainingdataset5))
+        pcatestingdataset = np.column_stack((pcatestingdataset1, pcatestingdataset2, pcatestingdataset4, pcatestingdataset5))
+    if (traitbeingpredicted == "Conscientiousness"):
+        pcatrainingdataset = np.column_stack((pcatrainingdataset1, pcatrainingdataset2, pcatrainingdataset3, pcatrainingdataset5))
+        pcatestingdataset = np.column_stack((pcatestingdataset1, pcatestingdataset2, pcatestingdataset3, pcatestingdataset5))
+    if (traitbeingpredicted == "Openness"):
+        pcatrainingdataset = np.column_stack((pcatrainingdataset1, pcatrainingdataset2, pcatrainingdataset3, pcatrainingdataset4))
+        pcatestingdataset = np.column_stack((pcatestingdataset1, pcatestingdataset2, pcatestingdataset3, pcatestingdataset4))
+
+    print(pcatrainingdataset.shape)
+    print(pcatestingdataset.shape)
+
+    return pcatrainingdataset, pcatestingdataset
+
+def PCAQuestions(trainingdataset, testingdataset):
+    
+    print("PCAQUESTIONS")
+
+    print(trainingdataset.shape)
+    print(testingdataset.shape)
+
+    pca = PCA(0.8)
+    pca.fit(trainingdataset)
+    trainingpcadataset = pca.transform(trainingdataset)
+    testingpcadataset = pca.transform(testingdataset)
+
+    print(trainingpcadataset.shape)
+    print(testingpcadataset.shape)
+
+    return trainingpcadataset, testingpcadataset
 
 def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatasettotals, alltrainingdatasetpreferences, alltestingdatasetquestions, alltestingdatasettotals, alltestingdatasetpreferences):
 
@@ -502,8 +536,6 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     pcaseparated_ens_estimators = []
 
     trainingdatasetquestions = alltrainingdatasetquestions[:,10:] # Select all question columns not pertaining to extroversion
-    pca_trainingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, "Extroversion") # PCA guarenteeing the use of all five question types separately
-    pca_trainingdatasetquestions = PCAQuestions(trainingdatasetquestions) # PCA where questions may be combined
     trainingdatasettotals = alltrainingdatasettotals[:,1:] # Select all total columns but extroversion
     trainingdatasetpreferences = alltrainingdatasetpreferences[:,1:] # Select all preference columns but extroversion
     trainingcorrectlabels = alltrainingdatasetpreferences[:,0] # Select preferences for extroversion corresponding to columns
@@ -511,8 +543,8 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     trainingcorrectlabels = np.transpose(trainingcorrectlabels)
 
     testingdatasetquestions = alltestingdatasetquestions[:,10:] # Select all question columns not pertaining to extroversion
-    pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltestingdatasetquestions, "Extroversion") # PCA guarenteeing the use of all five question types separately
-    pca_testingdatasetquestions = PCAQuestions(testingdatasetquestions) # PCA where questions may be combined
+    pca_trainingdatasetquestionsseparated, pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, alltestingdatasetquestions, "Extroversion") # PCA guarenteeing the use of all five question types separately
+    pca_trainingdatasetquestions, pca_testingdatasetquestions = PCAQuestions(trainingdatasetquestions, testingdatasetquestions) # PCA where questions may be combined
     testingdatasettotals = alltestingdatasettotals[:,1:] # Select all columns but extroversion
     testingdatasetpreferences = alltestingdatasetpreferences[:,1:] # Select all preference columns but extroversion
     testingcorrectlabels = alltestingdatasetpreferences[:,0] # Select preferences for extroversion corresponding to columns
@@ -602,7 +634,7 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     logistictestpcapredictions = clf_logistic3.predict(pca_testingdatasetquestions)
     
     clf_logistic4 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    pca_ens_estimators.append(('log_reg', clf_logistic4))
+    pcaseparated_ens_estimators.append(('log_reg', clf_logistic4))
     clf_logistic4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
     logisticpcaseparatedpredictions = clf_logistic4.predict(pca_trainingdatasetquestionsseparated)
     logistictestpcaseparatedpredictions = clf_logistic4.predict(pca_testingdatasetquestionsseparated)
@@ -626,13 +658,13 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
     
     clf_decisiontree3 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append(('dt', clf_decisiontree3))
+    pca_ens_estimators.append(('dt', clf_decisiontree3))
     clf_decisiontree3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
     decisiontreepcapredictions = clf_decisiontree3.predict(pca_trainingdatasetquestions)
     decisiontreetestpcapredictions = clf_decisiontree3.predict(pca_testingdatasetquestions)
     
     clf_decisiontree4 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append(('dt', clf_decisiontree4))
+    pcaseparated_ens_estimators.append(('dt', clf_decisiontree4))
     clf_decisiontree4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
     decisiontreepcaseparatedpredictions = clf_decisiontree4.predict(pca_trainingdatasetquestionsseparated)
     decisiontreetestpcaseparatedpredictions = clf_decisiontree4.predict(pca_testingdatasetquestionsseparated)
@@ -644,8 +676,8 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
 
     questions_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testquestionpredictions)
 
-    print("Able to predict extroversion based on individual training questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy))
-    print("Able to predict extroversion based on individual training questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on individual testing questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy), file=file_out)
 
     totals_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, perceptpredictions)
 
@@ -667,6 +699,26 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     print("Able to predict extroversion based on individual testing preferences using perceptron with %{} accuracy".format(preferences_perceptron_testing_accuracy))
     print("Able to predict extroversion based on individual testing preferences using perceptron with %{} accuracy".format(preferences_perceptron_testing_accuracy), file=file_out)
 
+    pca_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, pcapredictions)
+
+    print("Able to predict extroversion based on individual training questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_training_accuracy))
+    print("Able to predict extroversion based on individual training questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_training_accuracy), file=file_out)
+
+    pca_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testpcapredictions)
+
+    print("Able to predict extroversion based on individual testing questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_testing_accuracy), file=file_out)
+
+    pcaseparated_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, pcaseparatedpredictions)
+
+    print("Able to predict extroversion based on individual training questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_training_accuracy))
+    print("Able to predict extroversion based on individual training questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_training_accuracy), file=file_out)
+
+    pcaseparated_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testpcaseparatedpredictions)
+
+    print("Able to predict extroversion based on individual testing questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_testing_accuracy), file=file_out)
+
     questions_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdquestionpredictions)
 
     print("Able to predict extroversion based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_training_accuracy))
@@ -674,8 +726,8 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
 
     questions_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestquestionpredictions)
 
-    print("Able to predict extroversion based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy))
-    print("Able to predict extroversion based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on individual testing questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy), file=file_out)
 
     totals_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpredictions)
 
@@ -697,6 +749,26 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     print("Able to predict extroversion based on individual testing preferences using stochastic gradient descent with %{} accuracy".format(preferences_sgd_testing_accuracy))
     print("Able to predict extroversion based on individual testing preferences using stochastic gradient descent with %{} accuracy".format(preferences_sgd_testing_accuracy), file=file_out)
 
+    pca_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpcapredictions)
+
+    print("Able to predict extroversion based on individual training questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_training_accuracy))
+    print("Able to predict extroversion based on individual training questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_training_accuracy), file=file_out)
+
+    pca_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestpcapredictions)
+
+    print("Able to predict extroversion based on individual testing questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_testing_accuracy), file=file_out)
+
+    pcaseparated_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpcaseparatedpredictions)
+
+    print("Able to predict extroversion based on individual training questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_training_accuracy))
+    print("Able to predict extroversion based on individual training questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_training_accuracy), file=file_out)
+
+    pcaseparated_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestpcaseparatedpredictions)
+
+    print("Able to predict extroversion based on individual testing questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_testing_accuracy), file=file_out)
+
     questions_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticquestionpredictions)
 
     print("Able to predict extroversion based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_training_accuracy))
@@ -704,8 +776,8 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
 
     questions_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestquestionpredictions)
 
-    print("Able to predict extroversion based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy))
-    print("Able to predict extroversion based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on individual testing questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy), file=file_out)
 
     totals_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpredictions)
 
@@ -727,6 +799,26 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     print("Able to predict extroversion based on individual testing preferences using logistic regression with %{} accuracy".format(preference_logistic_testing_accuracy))
     print("Able to predict extroversion based on individual testing preferences using logistic regression with %{} accuracy".format(preference_logistic_testing_accuracy), file=file_out)
 
+    pca_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpcapredictions)
+
+    print("Able to predict extroversion based on individual training questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_training_accuracy))
+    print("Able to predict extroversion based on individual training questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_training_accuracy), file=file_out)
+
+    pca_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestpcapredictions)
+
+    print("Able to predict extroversion based on individual testing questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_testing_accuracy), file=file_out)
+
+    pcaseparated_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpcaseparatedpredictions)
+
+    print("Able to predict extroversion based on individual training questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_training_accuracy))
+    print("Able to predict extroversion based on individual training questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_training_accuracy), file=file_out)
+
+    pcaseparated_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestpcaseparatedpredictions)
+
+    print("Able to predict extroversion based on individual testing questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_testing_accuracy), file=file_out)
+
     questions_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreequestionpredictions)
 
     print("Able to predict extroversion based on individual training questions using decision tree with %{} accuracy".format(questions_dt_training_accuracy))
@@ -734,8 +826,8 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
 
     questions_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestquestionpredictions)
 
-    print("Able to predict extroversion based on individual training questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy))
-    print("Able to predict extroversion based on individual training questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy), file=file_out)
+    print("Able to predict extroversion based on individual testing questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy), file=file_out)
 
     totals_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepredictions)
 
@@ -756,6 +848,26 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
 
     print("Able to predict extroversion based on individual testing preferences using decision tree with %{} accuracy".format(preferences_dt_testing_accuracy))
     print("Able to predict extroversion based on individual testing preferences using decision tree with %{} accuracy".format(preferences_dt_testing_accuracy), file=file_out)
+
+    pca_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepcapredictions)
+
+    print("Able to predict extroversion based on individual training questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_training_accuracy))
+    print("Able to predict extroversion based on individual training questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_training_accuracy), file=file_out)
+
+    pca_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestpcapredictions)
+
+    print("Able to predict extroversion based on individual testing questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_testing_accuracy), file=file_out)
+
+    pcaseparated_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepcaseparatedpredictions)
+
+    print("Able to predict extroversion based on individual training questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_training_accuracy))
+    print("Able to predict extroversion based on individual training questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_training_accuracy), file=file_out)
+
+    pcaseparated_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestpcaseparatedpredictions)
+
+    print("Able to predict extroversion based on individual testing questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_testing_accuracy))
+    print("Able to predict extroversion based on individual testing questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_testing_accuracy), file=file_out)
 
     individual_voting = VotingClassifier(estimators=individual_ens_estimators)
     individual_voting.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -802,6 +914,36 @@ def PredictExtroversion(file_out, alltrainingdatasetquestions, alltrainingdatase
     print("Able to predict extroversion based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy))
     print("Able to predict extroversion based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy), file=file_out)
 
+    pca_voting = VotingClassifier(estimators=pca_ens_estimators)
+    pca_voting.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    votingpcapredictions = pca_voting.predict(pca_trainingdatasetquestions)
+
+    pac_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, votingpcapredictions)
+
+    print("Able to predict extroversion based on individual training pca questions using ensemble of the above with %{} accuracy".format(pac_voting_training_accuracy))
+    print("Able to predict extroversion based on individual training pca questions using ensemble of the above with %{} accuracy".format(pac_voting_training_accuracy), file=file_out)
+
+    votingtestpcapredictions = pca_voting.predict(pca_testingdatasetquestions)
+    pca_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpcapredictions)
+
+    print("Able to predict extroversion based on individual testing pca questions using ensemble of the above with %{} accuracy".format(pca_voting_testing_accuracy))
+    print("Able to predict extroversion based on individual testing pca questions using ensemble of the above with %{} accuracy".format(pca_voting_testing_accuracy), file=file_out)
+
+    pcaseparated_voting = VotingClassifier(estimators=pcaseparated_ens_estimators)
+    pcaseparated_voting.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    votingpcaseparatedpredictions = pcaseparated_voting.predict(pca_trainingdatasetquestionsseparated)
+
+    pacseparated_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, votingpcaseparatedpredictions)
+
+    print("Able to predict extroversion based on individual training pca separated questions using ensemble of the above with %{} accuracy".format(pacseparated_voting_training_accuracy))
+    print("Able to predict extroversion based on individual training pca separated questions using ensemble of the above with %{} accuracy".format(pacseparated_voting_training_accuracy), file=file_out)
+
+    votingtestpcaseparatedpredictions = pcaseparated_voting.predict(pca_testingdatasetquestionsseparated)
+    pcaseparated_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpcaseparatedpredictions)
+
+    print("Able to predict extroversion based on individual testing pca separated questions using ensemble of the above with %{} accuracy".format(pcaseparated_voting_testing_accuracy))
+    print("Able to predict extroversion based on individual testing pca separated questions using ensemble of the above with %{} accuracy".format(pcaseparated_voting_testing_accuracy), file=file_out)
+
     return
 
 def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdatasettotals, alltrainingdatasetpreferences, alltestingdatasetquestions, alltestingdatasettotals, alltestingdatasetpreferences):
@@ -815,15 +957,13 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     columnstodelete = list(range(10, 20))
 
     trainingdatasetquestions = np.delete(alltrainingdatasetquestions, columnstodelete, axis=1)
-    pca_trainingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, "Neuroticism") # PCA guarenteeing the use of all five question types separately
-    pca_trainingdatasetquestions = PCAQuestions(trainingdatasetquestions) # PCA where questions may be combined
     trainingdatasettotals = np.delete(alltrainingdatasettotals, 1, axis=1) # Select all columns but neuroticism
     trainingdatasetpreferences = np.delete(alltrainingdatasetpreferences, 1, axis=1) # Select all columns but neuroticism
     trainingcorrectlabels = alltrainingdatasetpreferences[:,1] # Select preferences for neuroticism corresponding to columns
     
     testingdatasetquestions = np.delete(alltestingdatasetquestions, columnstodelete, axis=1)
-    pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltestingdatasetquestions, "Neuroticism") # PCA guarenteeing the use of all five question types separately
-    pca_testingdatasetquestions = PCAQuestions(testingdatasetquestions) # PCA where questions may be combined
+    pca_trainingdatasetquestionsseparated, pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, alltestingdatasetquestions, "Neuroticism") # PCA guarenteeing the use of all five question types separately
+    pca_trainingdatasetquestions, pca_testingdatasetquestions = PCAQuestions(trainingdatasetquestions, testingdatasetquestions) # PCA where questions may be combined
     testingdatasettotals = np.delete(alltestingdatasettotals, 1, axis=1) # Select all columns but neuroticism
     testingdatasetpreferences = np.delete(alltestingdatasetpreferences, 1, axis=1) # Select all columns but neuroticism
     testingcorrectlabels = alltestingdatasetpreferences[:,1] # Select preferences for neuroticism corresponding to columns
@@ -913,7 +1053,7 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     logistictestpcapredictions = clf_logistic3.predict(pca_testingdatasetquestions)
     
     clf_logistic4 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    pca_ens_estimators.append(('log_reg', clf_logistic4))
+    pcaseparated_ens_estimators.append(('log_reg', clf_logistic4))
     clf_logistic4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
     logisticpcaseparatedpredictions = clf_logistic4.predict(pca_trainingdatasetquestionsseparated)
     logistictestpcaseparatedpredictions = clf_logistic4.predict(pca_testingdatasetquestionsseparated)
@@ -937,13 +1077,13 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
     
     clf_decisiontree3 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append(('dt', clf_decisiontree3))
+    pca_ens_estimators.append(('dt', clf_decisiontree3))
     clf_decisiontree3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
     decisiontreepcapredictions = clf_decisiontree3.predict(pca_trainingdatasetquestions)
     decisiontreetestpcapredictions = clf_decisiontree3.predict(pca_testingdatasetquestions)
     
     clf_decisiontree4 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append(('dt', clf_decisiontree4))
+    pcaseparated_ens_estimators.append(('dt', clf_decisiontree4))
     clf_decisiontree4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
     decisiontreepcaseparatedpredictions = clf_decisiontree4.predict(pca_trainingdatasetquestionsseparated)
     decisiontreetestpcaseparatedpredictions = clf_decisiontree4.predict(pca_testingdatasetquestionsseparated)
@@ -955,8 +1095,8 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
 
     questions_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testquestionpredictions)
 
-    print("Able to predict neuroticism based on individual training questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy))
-    print("Able to predict neuroticism based on individual training questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on individual testing questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy), file=file_out)
 
     totals_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, perceptpredictions)
 
@@ -978,6 +1118,26 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     print("Able to predict neuroticism based on individual testing preferences using perceptron with %{} accuracy".format(preferences_perceptron_testing_accuracy))
     print("Able to predict neuroticism based on individual testing preferences using perceptron with %{} accuracy".format(preferences_perceptron_testing_accuracy), file=file_out)
 
+    pca_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, pcapredictions)
+
+    print("Able to predict neuroticism based on individual training questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_training_accuracy))
+    print("Able to predict neuroticism based on individual training questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_training_accuracy), file=file_out)
+
+    pca_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testpcapredictions)
+
+    print("Able to predict neuroticism based on individual testing questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_testing_accuracy), file=file_out)
+
+    pcaseparated_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, pcaseparatedpredictions)
+
+    print("Able to predict neuroticism based on individual training questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_training_accuracy))
+    print("Able to predict neuroticism based on individual training questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_training_accuracy), file=file_out)
+
+    pcaseparated_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testpcaseparatedpredictions)
+
+    print("Able to predict neuroticism based on individual testing questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_testing_accuracy), file=file_out)
+
     questions_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdquestionpredictions)
 
     print("Able to predict neuroticism based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_training_accuracy))
@@ -985,8 +1145,8 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
 
     questions_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestquestionpredictions)
 
-    print("Able to predict neuroticism based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy))
-    print("Able to predict neuroticism based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on individual testing questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy), file=file_out)
 
     totals_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpredictions)
 
@@ -1008,6 +1168,26 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     print("Able to predict neuroticism based on individual testing preferences using stochastic gradient descent with %{} accuracy".format(preferences_sgd_testing_accuracy))
     print("Able to predict neuroticism based on individual testing preferences using stochastic gradient descent with %{} accuracy".format(preferences_sgd_testing_accuracy), file=file_out)
 
+    pca_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpcapredictions)
+
+    print("Able to predict neuroticism based on individual training questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_training_accuracy))
+    print("Able to predict neuroticism based on individual training questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_training_accuracy), file=file_out)
+
+    pca_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestpcapredictions)
+
+    print("Able to predict neuroticism based on individual testing questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_testing_accuracy), file=file_out)
+
+    pcaseparated_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpcaseparatedpredictions)
+
+    print("Able to predict neuroticism based on individual training questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_training_accuracy))
+    print("Able to predict neuroticism based on individual training questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_training_accuracy), file=file_out)
+
+    pcaseparated_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestpcaseparatedpredictions)
+
+    print("Able to predict neuroticism based on individual testing questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_testing_accuracy), file=file_out)
+
     questions_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticquestionpredictions)
 
     print("Able to predict neuroticism based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_training_accuracy))
@@ -1015,8 +1195,8 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
 
     questions_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestquestionpredictions)
 
-    print("Able to predict neuroticism based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy))
-    print("Able to predict neuroticism based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on individual testing questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy), file=file_out)
 
     totals_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpredictions)
 
@@ -1038,6 +1218,26 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     print("Able to predict neuroticism based on individual testing preferences using logistic regression with %{} accuracy".format(preference_logistic_testing_accuracy))
     print("Able to predict neuroticism based on individual testing preferences using logistic regression with %{} accuracy".format(preference_logistic_testing_accuracy), file=file_out)
 
+    pca_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpcapredictions)
+
+    print("Able to predict neuroticism based on individual training questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_training_accuracy))
+    print("Able to predict neuroticism based on individual training questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_training_accuracy), file=file_out)
+
+    pca_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestpcapredictions)
+
+    print("Able to predict neuroticism based on individual testing questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_testing_accuracy), file=file_out)
+
+    pcaseparated_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpcaseparatedpredictions)
+
+    print("Able to predict neuroticism based on individual training questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_training_accuracy))
+    print("Able to predict neuroticism based on individual training questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_training_accuracy), file=file_out)
+
+    pcaseparated_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestpcaseparatedpredictions)
+
+    print("Able to predict neuroticism based on individual testing questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_testing_accuracy), file=file_out)
+
     questions_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreequestionpredictions)
 
     print("Able to predict neuroticism based on individual training questions using decision tree with %{} accuracy".format(questions_dt_training_accuracy))
@@ -1045,8 +1245,8 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
 
     questions_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestquestionpredictions)
 
-    print("Able to predict neuroticism based on individual training questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy))
-    print("Able to predict neuroticism based on individual training questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy), file=file_out)
+    print("Able to predict neuroticism based on individual testing questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy), file=file_out)
 
     totals_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepredictions)
 
@@ -1067,6 +1267,26 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
 
     print("Able to predict neuroticism based on individual testing preferences using decision tree with %{} accuracy".format(preferences_dt_testing_accuracy))
     print("Able to predict neuroticism based on individual testing preferences using decision tree with %{} accuracy".format(preferences_dt_testing_accuracy), file=file_out)
+
+    pca_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepcapredictions)
+
+    print("Able to predict neuroticism based on individual training questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_training_accuracy))
+    print("Able to predict neuroticism based on individual training questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_training_accuracy), file=file_out)
+
+    pca_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestpcapredictions)
+
+    print("Able to predict neuroticism based on individual testing questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_testing_accuracy), file=file_out)
+
+    pcaseparated_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepcaseparatedpredictions)
+
+    print("Able to predict neuroticism based on individual training questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_training_accuracy))
+    print("Able to predict neuroticism based on individual training questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_training_accuracy), file=file_out)
+
+    pcaseparated_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestpcaseparatedpredictions)
+
+    print("Able to predict neuroticism based on individual testing questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_testing_accuracy), file=file_out)
 
     individual_voting = VotingClassifier(estimators=individual_ens_estimators)
     individual_voting.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -1113,6 +1333,36 @@ def PredictNeuroticism(file_out, alltrainingdatasetquestions, alltrainingdataset
     print("Able to predict neuroticism based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy))
     print("Able to predict neuroticism based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy), file=file_out)
 
+    pca_voting = VotingClassifier(estimators=pca_ens_estimators)
+    pca_voting.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    votingpcapredictions = pca_voting.predict(pca_trainingdatasetquestions)
+
+    pac_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, votingpcapredictions)
+
+    print("Able to predict neuroticism based on individual training pca questions using ensemble of the above with %{} accuracy".format(pac_voting_training_accuracy))
+    print("Able to predict neuroticism based on individual training pca questions using ensemble of the above with %{} accuracy".format(pac_voting_training_accuracy), file=file_out)
+
+    votingtestpcapredictions = pca_voting.predict(pca_testingdatasetquestions)
+    pca_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpcapredictions)
+
+    print("Able to predict neuroticism based on individual testing pca questions using ensemble of the above with %{} accuracy".format(pca_voting_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing pca questions using ensemble of the above with %{} accuracy".format(pca_voting_testing_accuracy), file=file_out)
+
+    pcaseparated_voting = VotingClassifier(estimators=pcaseparated_ens_estimators)
+    pcaseparated_voting.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    votingpcaseparatedpredictions = pcaseparated_voting.predict(pca_trainingdatasetquestionsseparated)
+
+    pacseparated_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, votingpcaseparatedpredictions)
+
+    print("Able to predict neuroticism based on individual training pca separated questions using ensemble of the above with %{} accuracy".format(pacseparated_voting_training_accuracy))
+    print("Able to predict neuroticism based on individual training pca separated questions using ensemble of the above with %{} accuracy".format(pacseparated_voting_training_accuracy), file=file_out)
+
+    votingtestpcaseparatedpredictions = pcaseparated_voting.predict(pca_testingdatasetquestionsseparated)
+    pcaseparated_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpcaseparatedpredictions)
+
+    print("Able to predict neuroticism based on individual testing pca separated questions using ensemble of the above with %{} accuracy".format(pcaseparated_voting_testing_accuracy))
+    print("Able to predict neuroticism based on individual testing pca separated questions using ensemble of the above with %{} accuracy".format(pcaseparated_voting_testing_accuracy), file=file_out)
+
     return
 
 def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatasettotals, alltrainingdatasetpreferences, alltestingdatasetquestions, alltestingdatasettotals, alltestingdatasetpreferences):
@@ -1126,15 +1376,13 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     columnstodelete = list(range(20, 30))
 
     trainingdatasetquestions = np.delete(alltrainingdatasetquestions, columnstodelete, axis=1)
-    pca_trainingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, "Agreeableness") # PCA guarenteeing the use of all five question types separately
-    pca_trainingdatasetquestions = PCAQuestions(trainingdatasetquestions) # PCA where questions may be combined
     trainingdatasettotals = np.delete(alltrainingdatasettotals, 2, axis=1) # Select all columns but agreeableness
     trainingdatasetpreferences = np.delete(alltrainingdatasetpreferences, 2, axis=1) # Select all columns but agreeableness
     trainingcorrectlabels = alltrainingdatasetpreferences[:,2] # Select preferences for agreeableness corresponding to columns
     
     testingdatasetquestions = np.delete(alltestingdatasetquestions, columnstodelete, axis=1)
-    pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltestingdatasetquestions, "Agreeableness") # PCA guarenteeing the use of all five question types separately
-    pca_testingdatasetquestions = PCAQuestions(testingdatasetquestions) # PCA where questions may be combined
+    pca_trainingdatasetquestionsseparated, pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, alltestingdatasetquestions, "Agreeableness") # PCA guarenteeing the use of all five question types separately
+    pca_trainingdatasetquestions, pca_testingdatasetquestions = PCAQuestions(trainingdatasetquestions, testingdatasetquestions) # PCA where questions may be combined
     testingdatasettotals = np.delete(alltestingdatasettotals, 2, axis=1) # Select all columns but agreeableness
     testingdatasetpreferences = np.delete(alltestingdatasetpreferences, 2, axis=1) # Select all columns but agreeableness
     testingcorrectlabels = alltestingdatasetpreferences[:,2] # Select preferences for agreeableness corresponding to columns
@@ -1224,7 +1472,7 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     logistictestpcapredictions = clf_logistic3.predict(pca_testingdatasetquestions)
     
     clf_logistic4 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    pca_ens_estimators.append(('log_reg', clf_logistic4))
+    pcaseparated_ens_estimators.append(('log_reg', clf_logistic4))
     clf_logistic4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
     logisticpcaseparatedpredictions = clf_logistic4.predict(pca_trainingdatasetquestionsseparated)
     logistictestpcaseparatedpredictions = clf_logistic4.predict(pca_testingdatasetquestionsseparated)
@@ -1248,13 +1496,13 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
     
     clf_decisiontree3 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append(('dt', clf_decisiontree3))
+    pca_ens_estimators.append(('dt', clf_decisiontree3))
     clf_decisiontree3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
     decisiontreepcapredictions = clf_decisiontree3.predict(pca_trainingdatasetquestions)
     decisiontreetestpcapredictions = clf_decisiontree3.predict(pca_testingdatasetquestions)
     
     clf_decisiontree4 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append(('dt', clf_decisiontree4))
+    pcaseparated_ens_estimators.append(('dt', clf_decisiontree4))
     clf_decisiontree4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
     decisiontreepcaseparatedpredictions = clf_decisiontree4.predict(pca_trainingdatasetquestionsseparated)
     decisiontreetestpcaseparatedpredictions = clf_decisiontree4.predict(pca_testingdatasetquestionsseparated)
@@ -1266,8 +1514,8 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
 
     questions_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testquestionpredictions)
 
-    print("Able to predict agreeableness based on individual training questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy))
-    print("Able to predict agreeableness based on individual training questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict agreeableness based on individual testing questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy), file=file_out)
 
     totals_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, perceptpredictions)
 
@@ -1289,6 +1537,26 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     print("Able to predict agreeableness based on individual testing preferences using perceptron with %{} accuracy".format(preferences_perceptron_testing_accuracy))
     print("Able to predict agreeableness based on individual testing preferences using perceptron with %{} accuracy".format(preferences_perceptron_testing_accuracy), file=file_out)
 
+    pca_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, pcapredictions)
+
+    print("Able to predict agreeableness based on individual training questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_training_accuracy))
+    print("Able to predict agreeableness based on individual training questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_training_accuracy), file=file_out)
+
+    pca_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testpcapredictions)
+
+    print("Able to predict agreeableness based on individual testing questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_testing_accuracy), file=file_out)
+
+    pcaseparated_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, pcaseparatedpredictions)
+
+    print("Able to predict agreeableness based on individual training questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_training_accuracy))
+    print("Able to predict agreeableness based on individual training questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_training_accuracy), file=file_out)
+
+    pcaseparated_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testpcaseparatedpredictions)
+
+    print("Able to predict agreeableness based on individual testing questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_testing_accuracy), file=file_out)
+
     questions_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdquestionpredictions)
 
     print("Able to predict agreeableness based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_training_accuracy))
@@ -1296,8 +1564,8 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
 
     questions_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestquestionpredictions)
 
-    print("Able to predict agreeableness based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy))
-    print("Able to predict agreeableness based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy), file=file_out)
+    print("Able to predict agreeableness based on individual testing questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy), file=file_out)
 
     totals_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpredictions)
 
@@ -1319,6 +1587,26 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     print("Able to predict agreeableness based on individual testing preferences using stochastic gradient descent with %{} accuracy".format(preferences_sgd_testing_accuracy))
     print("Able to predict agreeableness based on individual testing preferences using stochastic gradient descent with %{} accuracy".format(preferences_sgd_testing_accuracy), file=file_out)
 
+    pca_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpcapredictions)
+
+    print("Able to predict agreeableness based on individual training questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_training_accuracy))
+    print("Able to predict agreeableness based on individual training questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_training_accuracy), file=file_out)
+
+    pca_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestpcapredictions)
+
+    print("Able to predict agreeableness based on individual testing questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_testing_accuracy), file=file_out)
+
+    pcaseparated_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpcaseparatedpredictions)
+
+    print("Able to predict agreeableness based on individual training questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_training_accuracy))
+    print("Able to predict agreeableness based on individual training questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_training_accuracy), file=file_out)
+
+    pcaseparated_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestpcaseparatedpredictions)
+
+    print("Able to predict agreeableness based on individual testing questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_testing_accuracy), file=file_out)
+
     questions_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticquestionpredictions)
 
     print("Able to predict agreeableness based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_training_accuracy))
@@ -1326,8 +1614,8 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
 
     questions_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestquestionpredictions)
 
-    print("Able to predict agreeableness based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy))
-    print("Able to predict agreeableness based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy), file=file_out)
+    print("Able to predict agreeableness based on individual testing questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy), file=file_out)
 
     totals_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpredictions)
 
@@ -1349,6 +1637,26 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     print("Able to predict agreeableness based on individual testing preferences using logistic regression with %{} accuracy".format(preference_logistic_testing_accuracy))
     print("Able to predict agreeableness based on individual testing preferences using logistic regression with %{} accuracy".format(preference_logistic_testing_accuracy), file=file_out)
 
+    pca_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpcapredictions)
+
+    print("Able to predict agreeableness based on individual training questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_training_accuracy))
+    print("Able to predict agreeableness based on individual training questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_training_accuracy), file=file_out)
+
+    pca_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestpcapredictions)
+
+    print("Able to predict agreeableness based on individual testing questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_testing_accuracy), file=file_out)
+
+    pcaseparated_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpcaseparatedpredictions)
+
+    print("Able to predict agreeableness based on individual training questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_training_accuracy))
+    print("Able to predict agreeableness based on individual training questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_training_accuracy), file=file_out)
+
+    pcaseparated_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestpcaseparatedpredictions)
+
+    print("Able to predict agreeableness based on individual testing questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_testing_accuracy), file=file_out)
+
     questions_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreequestionpredictions)
 
     print("Able to predict agreeableness based on individual training questions using decision tree with %{} accuracy".format(questions_dt_training_accuracy))
@@ -1356,8 +1664,8 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
 
     questions_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestquestionpredictions)
 
-    print("Able to predict agreeableness based on individual training questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy))
-    print("Able to predict agreeableness based on individual training questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy), file=file_out)
+    print("Able to predict agreeableness based on individual testing questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy), file=file_out)
 
     totals_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepredictions)
 
@@ -1378,6 +1686,26 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
 
     print("Able to predict agreeableness based on individual testing preferences using decision tree with %{} accuracy".format(preferences_dt_testing_accuracy))
     print("Able to predict agreeableness based on individual testing preferences using decision tree with %{} accuracy".format(preferences_dt_testing_accuracy), file=file_out)
+
+    pca_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepcapredictions)
+
+    print("Able to predict agreeableness based on individual training questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_training_accuracy))
+    print("Able to predict agreeableness based on individual training questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_training_accuracy), file=file_out)
+
+    pca_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestpcapredictions)
+
+    print("Able to predict agreeableness based on individual testing questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_testing_accuracy), file=file_out)
+
+    pcaseparated_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepcaseparatedpredictions)
+
+    print("Able to predict agreeableness based on individual training questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_training_accuracy))
+    print("Able to predict agreeableness based on individual training questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_training_accuracy), file=file_out)
+
+    pcaseparated_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestpcaseparatedpredictions)
+
+    print("Able to predict agreeableness based on individual testing questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_testing_accuracy), file=file_out)
 
     individual_voting = VotingClassifier(estimators=individual_ens_estimators)
     individual_voting.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -1424,6 +1752,36 @@ def PredictAgreeableness(file_out, alltrainingdatasetquestions, alltrainingdatas
     print("Able to predict agreeableness based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy))
     print("Able to predict agreeableness based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy), file=file_out)
 
+    pca_voting = VotingClassifier(estimators=pca_ens_estimators)
+    pca_voting.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    votingpcapredictions = pca_voting.predict(pca_trainingdatasetquestions)
+
+    pac_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, votingpcapredictions)
+
+    print("Able to predict agreeableness based on individual training pca questions using ensemble of the above with %{} accuracy".format(pac_voting_training_accuracy))
+    print("Able to predict agreeableness based on individual training pca questions using ensemble of the above with %{} accuracy".format(pac_voting_training_accuracy), file=file_out)
+
+    votingtestpcapredictions = pca_voting.predict(pca_testingdatasetquestions)
+    pca_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpcapredictions)
+
+    print("Able to predict agreeableness based on individual testing pca questions using ensemble of the above with %{} accuracy".format(pca_voting_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing pca questions using ensemble of the above with %{} accuracy".format(pca_voting_testing_accuracy), file=file_out)
+
+    pcaseparated_voting = VotingClassifier(estimators=pcaseparated_ens_estimators)
+    pcaseparated_voting.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    votingpcaseparatedpredictions = pcaseparated_voting.predict(pca_trainingdatasetquestionsseparated)
+
+    pacseparated_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, votingpcaseparatedpredictions)
+
+    print("Able to predict agreeableness based on individual training pca separated questions using ensemble of the above with %{} accuracy".format(pacseparated_voting_training_accuracy))
+    print("Able to predict agreeableness based on individual training pca separated questions using ensemble of the above with %{} accuracy".format(pacseparated_voting_training_accuracy), file=file_out)
+
+    votingtestpcaseparatedpredictions = pcaseparated_voting.predict(pca_testingdatasetquestionsseparated)
+    pcaseparated_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpcaseparatedpredictions)
+
+    print("Able to predict agreeableness based on individual testing pca separated questions using ensemble of the above with %{} accuracy".format(pcaseparated_voting_testing_accuracy))
+    print("Able to predict agreeableness based on individual testing pca separated questions using ensemble of the above with %{} accuracy".format(pcaseparated_voting_testing_accuracy), file=file_out)
+
     return
 
 def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingdatasettotals, alltrainingdatasetpreferences, alltestingdatasetquestions, alltestingdatasettotals, alltestingdatasetpreferences):
@@ -1437,15 +1795,13 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     columnstodelete = list(range(30, 40))
 
     trainingdatasetquestions = np.delete(alltrainingdatasetquestions, columnstodelete, axis=1)
-    pca_trainingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, "Conscientiousness") # PCA guarenteeing the use of all five question types separately
-    pca_trainingdatasetquestions = PCAQuestions(trainingdatasetquestions) # PCA where questions may be combined
     trainingdatasettotals = np.delete(alltrainingdatasettotals, 3, axis=1) # Select all columns but conscientiousness
     trainingdatasetpreferences = np.delete(alltrainingdatasetpreferences, 3, axis=1) # Select all columns but conscientiousness
     trainingcorrectlabels = alltrainingdatasetpreferences[:,3] # Select preferences for conscientiousness corresponding to columns
     
     testingdatasetquestions = np.delete(alltestingdatasetquestions, columnstodelete, axis=1)
-    pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltestingdatasetquestions, "Conscientiousness") # PCA guarenteeing the use of all five question types separately
-    pca_testingdatasetquestions = PCAQuestions(testingdatasetquestions) # PCA where questions may be combined
+    pca_trainingdatasetquestionsseparated, pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, alltestingdatasetquestions, "Conscientiousness") # PCA guarenteeing the use of all five question types separately
+    pca_trainingdatasetquestions, pca_testingdatasetquestions = PCAQuestions(trainingdatasetquestions, testingdatasetquestions) # PCA where questions may be combined
     testingdatasettotals = np.delete(alltestingdatasettotals, 3, axis=1) # Select all columns but conscientiousness
     testingdatasetpreferences = np.delete(alltestingdatasetpreferences, 3, axis=1) # Select all columns but conscientiousness
     testingcorrectlabels = alltestingdatasetpreferences[:,3] # Select preferences for conscientiousness corresponding to columns
@@ -1535,7 +1891,7 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     logistictestpcapredictions = clf_logistic3.predict(pca_testingdatasetquestions)
     
     clf_logistic4 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    pca_ens_estimators.append(('log_reg', clf_logistic4))
+    pcaseparated_ens_estimators.append(('log_reg', clf_logistic4))
     clf_logistic4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
     logisticpcaseparatedpredictions = clf_logistic4.predict(pca_trainingdatasetquestionsseparated)
     logistictestpcaseparatedpredictions = clf_logistic4.predict(pca_testingdatasetquestionsseparated)
@@ -1559,13 +1915,13 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
     
     clf_decisiontree3 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append(('dt', clf_decisiontree3))
+    pca_ens_estimators.append(('dt', clf_decisiontree3))
     clf_decisiontree3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
     decisiontreepcapredictions = clf_decisiontree3.predict(pca_trainingdatasetquestions)
     decisiontreetestpcapredictions = clf_decisiontree3.predict(pca_testingdatasetquestions)
     
     clf_decisiontree4 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append(('dt', clf_decisiontree4))
+    pcaseparated_ens_estimators.append(('dt', clf_decisiontree4))
     clf_decisiontree4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
     decisiontreepcaseparatedpredictions = clf_decisiontree4.predict(pca_trainingdatasetquestionsseparated)
     decisiontreetestpcaseparatedpredictions = clf_decisiontree4.predict(pca_testingdatasetquestionsseparated)
@@ -1577,8 +1933,8 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
 
     questions_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testquestionpredictions)
 
-    print("Able to predict conscientiousness based on individual training questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy))
-    print("Able to predict conscientiousness based on individual training questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on individual testing questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy), file=file_out)
 
     totals_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, perceptpredictions)
 
@@ -1600,6 +1956,26 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     print("Able to predict conscientiousness based on individual testing preferences using perceptron with %{} accuracy".format(preferences_perceptron_testing_accuracy))
     print("Able to predict conscientiousness based on individual testing preferences using perceptron with %{} accuracy".format(preferences_perceptron_testing_accuracy), file=file_out)
 
+    pca_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, pcapredictions)
+
+    print("Able to predict conscientiousness based on individual training questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_training_accuracy))
+    print("Able to predict conscientiousness based on individual training questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_training_accuracy), file=file_out)
+
+    pca_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testpcapredictions)
+
+    print("Able to predict conscientiousness based on individual testing questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_testing_accuracy), file=file_out)
+
+    pcaseparated_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, pcaseparatedpredictions)
+
+    print("Able to predict conscientiousness based on individual training questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_training_accuracy))
+    print("Able to predict conscientiousness based on individual training questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_training_accuracy), file=file_out)
+
+    pcaseparated_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testpcaseparatedpredictions)
+
+    print("Able to predict conscientiousness based on individual testing questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_testing_accuracy), file=file_out)
+
     questions_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdquestionpredictions)
 
     print("Able to predict conscientiousness based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_training_accuracy))
@@ -1607,8 +1983,8 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
 
     questions_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestquestionpredictions)
 
-    print("Able to predict conscientiousness based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy))
-    print("Able to predict conscientiousness based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on individual testing questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy), file=file_out)
 
     totals_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpredictions)
 
@@ -1630,6 +2006,26 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     print("Able to predict conscientiousness based on individual testing preferences using stochastic gradient descent with %{} accuracy".format(preferences_sgd_testing_accuracy))
     print("Able to predict conscientiousness based on individual testing preferences using stochastic gradient descent with %{} accuracy".format(preferences_sgd_testing_accuracy), file=file_out)
 
+    pca_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpcapredictions)
+
+    print("Able to predict conscientiousness based on individual training questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_training_accuracy))
+    print("Able to predict conscientiousness based on individual training questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_training_accuracy), file=file_out)
+
+    pca_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestpcapredictions)
+
+    print("Able to predict conscientiousness based on individual testing questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_testing_accuracy), file=file_out)
+
+    pcaseparated_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpcaseparatedpredictions)
+
+    print("Able to predict conscientiousness based on individual training questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_training_accuracy))
+    print("Able to predict conscientiousness based on individual training questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_training_accuracy), file=file_out)
+
+    pcaseparated_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestpcaseparatedpredictions)
+
+    print("Able to predict conscientiousness based on individual testing questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_testing_accuracy), file=file_out)
+
     questions_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticquestionpredictions)
 
     print("Able to predict conscientiousness based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_training_accuracy))
@@ -1637,8 +2033,8 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
 
     questions_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestquestionpredictions)
 
-    print("Able to predict conscientiousness based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy))
-    print("Able to predict conscientiousness based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on individual testing questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy), file=file_out)
 
     totals_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpredictions)
 
@@ -1660,6 +2056,26 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     print("Able to predict conscientiousness based on individual testing preferences using logistic regression with %{} accuracy".format(preference_logistic_testing_accuracy))
     print("Able to predict conscientiousness based on individual testing preferences using logistic regression with %{} accuracy".format(preference_logistic_testing_accuracy), file=file_out)
 
+    pca_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpcapredictions)
+
+    print("Able to predict conscientiousness based on individual training questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_training_accuracy))
+    print("Able to predict conscientiousness based on individual training questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_training_accuracy), file=file_out)
+
+    pca_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestpcapredictions)
+
+    print("Able to predict conscientiousness based on individual testing questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_testing_accuracy), file=file_out)
+
+    pcaseparated_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpcaseparatedpredictions)
+
+    print("Able to predict conscientiousness based on individual training questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_training_accuracy))
+    print("Able to predict conscientiousness based on individual training questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_training_accuracy), file=file_out)
+
+    pcaseparated_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestpcaseparatedpredictions)
+
+    print("Able to predict conscientiousness based on individual testing questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_testing_accuracy), file=file_out)
+
     questions_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreequestionpredictions)
 
     print("Able to predict conscientiousness based on individual training questions using decision tree with %{} accuracy".format(questions_dt_training_accuracy))
@@ -1667,8 +2083,8 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
 
     questions_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestquestionpredictions)
 
-    print("Able to predict conscientiousness based on individual training questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy))
-    print("Able to predict conscientiousness based on individual training questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy), file=file_out)
+    print("Able to predict conscientiousness based on individual testing questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy), file=file_out)
 
     totals_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepredictions)
 
@@ -1689,6 +2105,26 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
 
     print("Able to predict conscientiousness based on individual testing preferences using decision tree with %{} accuracy".format(preferences_dt_testing_accuracy))
     print("Able to predict conscientiousness based on individual testing preferences using decision tree with %{} accuracy".format(preferences_dt_testing_accuracy), file=file_out)
+
+    pca_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepcapredictions)
+
+    print("Able to predict conscientiousness based on individual training questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_training_accuracy))
+    print("Able to predict conscientiousness based on individual training questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_training_accuracy), file=file_out)
+
+    pca_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestpcapredictions)
+
+    print("Able to predict conscientiousness based on individual testing questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_testing_accuracy), file=file_out)
+
+    pcaseparated_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepcaseparatedpredictions)
+
+    print("Able to predict conscientiousness based on individual training questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_training_accuracy))
+    print("Able to predict conscientiousness based on individual training questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_training_accuracy), file=file_out)
+
+    pcaseparated_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestpcaseparatedpredictions)
+
+    print("Able to predict conscientiousness based on individual testing questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_testing_accuracy), file=file_out)
 
     individual_voting = VotingClassifier(estimators=individual_ens_estimators)
     individual_voting.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -1735,6 +2171,36 @@ def PredictConscientiousness(file_out, alltrainingdatasetquestions, alltrainingd
     print("Able to predict conscientiousness based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy))
     print("Able to predict conscientiousness based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy), file=file_out)
 
+    pca_voting = VotingClassifier(estimators=pca_ens_estimators)
+    pca_voting.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    votingpcapredictions = pca_voting.predict(pca_trainingdatasetquestions)
+
+    pac_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, votingpcapredictions)
+
+    print("Able to predict conscientiousness based on individual training pca questions using ensemble of the above with %{} accuracy".format(pac_voting_training_accuracy))
+    print("Able to predict conscientiousness based on individual training pca questions using ensemble of the above with %{} accuracy".format(pac_voting_training_accuracy), file=file_out)
+
+    votingtestpcapredictions = pca_voting.predict(pca_testingdatasetquestions)
+    pca_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpcapredictions)
+
+    print("Able to predict conscientiousness based on individual testing pca questions using ensemble of the above with %{} accuracy".format(pca_voting_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing pca questions using ensemble of the above with %{} accuracy".format(pca_voting_testing_accuracy), file=file_out)
+
+    pcaseparated_voting = VotingClassifier(estimators=pcaseparated_ens_estimators)
+    pcaseparated_voting.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    votingpcaseparatedpredictions = pcaseparated_voting.predict(pca_trainingdatasetquestionsseparated)
+
+    pacseparated_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, votingpcaseparatedpredictions)
+
+    print("Able to predict conscientiousness based on individual training pca separated questions using ensemble of the above with %{} accuracy".format(pacseparated_voting_training_accuracy))
+    print("Able to predict conscientiousness based on individual training pca separated questions using ensemble of the above with %{} accuracy".format(pacseparated_voting_training_accuracy), file=file_out)
+
+    votingtestpcaseparatedpredictions = pcaseparated_voting.predict(pca_testingdatasetquestionsseparated)
+    pcaseparated_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpcaseparatedpredictions)
+
+    print("Able to predict conscientiousness based on individual testing pca separated questions using ensemble of the above with %{} accuracy".format(pcaseparated_voting_testing_accuracy))
+    print("Able to predict conscientiousness based on individual testing pca separated questions using ensemble of the above with %{} accuracy".format(pcaseparated_voting_testing_accuracy), file=file_out)
+
     return
 
 def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettotals, alltrainingdatasetpreferences, alltestingdatasetquestions, alltestingdatasettotals, alltestingdatasetpreferences):
@@ -1748,15 +2214,13 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     columnstodelete = list(range(40, 50))
 
     trainingdatasetquestions = np.delete(alltrainingdatasetquestions, columnstodelete, axis=1)
-    pca_trainingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, "Openness") # PCA guarenteeing the use of all five question types separately
-    pca_trainingdatasetquestions = PCAQuestions(trainingdatasetquestions) # PCA where questions may be combined
     trainingdatasettotals = np.delete(alltrainingdatasettotals, 4, axis=1) # Select all columns but openness
     trainingdatasetpreferences = np.delete(alltrainingdatasetpreferences, 4, axis=1) # Select all columns but openness
     trainingcorrectlabels = alltrainingdatasetpreferences[:,4] # Select preferences for openness corresponding to columns
     
     testingdatasetquestions = np.delete(alltestingdatasetquestions, columnstodelete, axis=1)
-    pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltestingdatasetquestions, "Openness") # PCA guarenteeing the use of all five question types separately
-    pca_testingdatasetquestions = PCAQuestions(testingdatasetquestions) # PCA where questions may be combined
+    pca_trainingdatasetquestionsseparated, pca_testingdatasetquestionsseparated = PCAQuestionsSeparated(alltrainingdatasetquestions, alltestingdatasetquestions, "Openness") # PCA guarenteeing the use of all five question types separately
+    pca_trainingdatasetquestions, pca_testingdatasetquestions = PCAQuestions(trainingdatasetquestions, testingdatasetquestions) # PCA where questions may be combined
     testingdatasettotals = np.delete(alltestingdatasettotals, 4, axis=1) # Select all columns but openness
     testingdatasetpreferences = np.delete(alltestingdatasetpreferences, 4, axis=1) # Select all columns but openness
     testingcorrectlabels = alltestingdatasetpreferences[:,4] # Select preferences for openness corresponding to columns
@@ -1846,7 +2310,7 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     logistictestpcapredictions = clf_logistic3.predict(pca_testingdatasetquestions)
     
     clf_logistic4 = linear_model.LogisticRegression(penalty='l1', solver='liblinear', tol=1e-6, max_iter=20, warm_start=True, intercept_scaling=10000.)
-    pca_ens_estimators.append(('log_reg', clf_logistic4))
+    pcaseparated_ens_estimators.append(('log_reg', clf_logistic4))
     clf_logistic4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
     logisticpcaseparatedpredictions = clf_logistic4.predict(pca_trainingdatasetquestionsseparated)
     logistictestpcaseparatedpredictions = clf_logistic4.predict(pca_testingdatasetquestionsseparated)
@@ -1870,13 +2334,13 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     decisiontreetestpreferencepredictions = clf_decisiontree2.predict(testingdatasetpreferences)
     
     clf_decisiontree3 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append(('dt', clf_decisiontree3))
+    pca_ens_estimators.append(('dt', clf_decisiontree3))
     clf_decisiontree3.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
     decisiontreepcapredictions = clf_decisiontree3.predict(pca_trainingdatasetquestions)
     decisiontreetestpcapredictions = clf_decisiontree3.predict(pca_testingdatasetquestions)
     
     clf_decisiontree4 = DecisionTreeClassifier(max_depth=20)
-    preference_ens_estimators.append(('dt', clf_decisiontree4))
+    pcaseparated_ens_estimators.append(('dt', clf_decisiontree4))
     clf_decisiontree4.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
     decisiontreepcaseparatedpredictions = clf_decisiontree4.predict(pca_trainingdatasetquestionsseparated)
     decisiontreetestpcaseparatedpredictions = clf_decisiontree4.predict(pca_testingdatasetquestionsseparated)
@@ -1888,8 +2352,8 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
 
     questions_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testquestionpredictions)
 
-    print("Able to predict openness based on individual training questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy))
-    print("Able to predict openness based on individual training questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy), file=file_out)
+    print("Able to predict openness based on individual testing questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy))
+    print("Able to predict openness based on individual testing questions using perceptron with %{} accuracy".format(questions_perceptron_testing_accuracy), file=file_out)
 
     totals_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, perceptpredictions)
 
@@ -1911,6 +2375,26 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     print("Able to predict openness based on individual testing preferences using perceptron with %{} accuracy".format(preferences_perceptron_testing_accuracy))
     print("Able to predict openness based on individual testing preferences using perceptron with %{} accuracy".format(preferences_perceptron_testing_accuracy), file=file_out)
 
+    pca_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, pcapredictions)
+
+    print("Able to predict openness based on individual training questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_training_accuracy))
+    print("Able to predict openness based on individual training questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_training_accuracy), file=file_out)
+
+    pca_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testpcapredictions)
+
+    print("Able to predict openness based on individual testing questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_testing_accuracy))
+    print("Able to predict openness based on individual testing questions after pca without separation of questions using perceptron with %{} accuracy".format(pca_perceptron_testing_accuracy), file=file_out)
+
+    pcaseparated_perceptron_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, pcaseparatedpredictions)
+
+    print("Able to predict openness based on individual training questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_training_accuracy))
+    print("Able to predict openness based on individual training questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_training_accuracy), file=file_out)
+
+    pcaseparated_perceptron_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, testpcaseparatedpredictions)
+
+    print("Able to predict openness based on individual testing questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_testing_accuracy))
+    print("Able to predict openness based on individual testing questions after pca with separation of questions using perceptron with %{} accuracy".format(pcaseparated_perceptron_testing_accuracy), file=file_out)
+
     questions_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdquestionpredictions)
 
     print("Able to predict openness based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_training_accuracy))
@@ -1918,8 +2402,8 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
 
     questions_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestquestionpredictions)
 
-    print("Able to predict openness based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy))
-    print("Able to predict openness based on individual training questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy), file=file_out)
+    print("Able to predict openness based on individual testing questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy))
+    print("Able to predict openness based on individual testing questions using stochastic gradient descent with %{} accuracy".format(questions_sgd_testing_accuracy), file=file_out)
 
     totals_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpredictions)
 
@@ -1941,6 +2425,26 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     print("Able to predict openness based on individual testing preferences using stochastic gradient descent with %{} accuracy".format(preferences_sgd_testing_accuracy))
     print("Able to predict openness based on individual testing preferences using stochastic gradient descent with %{} accuracy".format(preferences_sgd_testing_accuracy), file=file_out)
 
+    pca_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpcapredictions)
+
+    print("Able to predict openness based on individual training questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_training_accuracy))
+    print("Able to predict openness based on individual training questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_training_accuracy), file=file_out)
+
+    pca_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestpcapredictions)
+
+    print("Able to predict openness based on individual testing questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_testing_accuracy))
+    print("Able to predict openness based on individual testing questions after pca without separation of questions using stochastic gradient descent with %{} accuracy".format(pca_sgd_testing_accuracy), file=file_out)
+
+    pcaseparated_sgd_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, sgdpcaseparatedpredictions)
+
+    print("Able to predict openness based on individual training questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_training_accuracy))
+    print("Able to predict openness based on individual training questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_training_accuracy), file=file_out)
+
+    pcaseparated_sgd_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, sgdtestpcaseparatedpredictions)
+
+    print("Able to predict openness based on individual testing questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_testing_accuracy))
+    print("Able to predict openness based on individual testing questions after pca with separation of questions using stochastic gradient descent with %{} accuracy".format(pcaseparated_sgd_testing_accuracy), file=file_out)
+
     questions_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticquestionpredictions)
 
     print("Able to predict openness based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_training_accuracy))
@@ -1948,8 +2452,8 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
 
     questions_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestquestionpredictions)
 
-    print("Able to predict openness based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy))
-    print("Able to predict openness based on individual training questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy), file=file_out)
+    print("Able to predict openness based on individual testing questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy))
+    print("Able to predict openness based on individual testing questions using logistic regression with %{} accuracy".format(questions_logistic_testing_accuracy), file=file_out)
 
     totals_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpredictions)
 
@@ -1971,6 +2475,26 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
     print("Able to predict openness based on individual testing preferences using logistic regression with %{} accuracy".format(preference_logistic_testing_accuracy))
     print("Able to predict openness based on individual testing preferences using logistic regression with %{} accuracy".format(preference_logistic_testing_accuracy), file=file_out)
 
+    pca_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpcapredictions)
+
+    print("Able to predict openness based on individual training questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_training_accuracy))
+    print("Able to predict openness based on individual training questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_training_accuracy), file=file_out)
+
+    pca_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestpcapredictions)
+
+    print("Able to predict openness based on individual testing questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_testing_accuracy))
+    print("Able to predict openness based on individual testing questions after pca without separation of questions using logistic regression with %{} accuracy".format(pca_logistic_testing_accuracy), file=file_out)
+
+    pcaseparated_logistic_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, logisticpcaseparatedpredictions)
+
+    print("Able to predict openness based on individual training questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_training_accuracy))
+    print("Able to predict openness based on individual training questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_training_accuracy), file=file_out)
+
+    pcaseparated_logistic_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, logistictestpcaseparatedpredictions)
+
+    print("Able to predict openness based on individual testing questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_testing_accuracy))
+    print("Able to predict openness based on individual testing questions after pca with separation of questions using logistic regression with %{} accuracy".format(pcaseparated_logistic_testing_accuracy), file=file_out)
+
     questions_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreequestionpredictions)
 
     print("Able to predict openness based on individual training questions using decision tree with %{} accuracy".format(questions_dt_training_accuracy))
@@ -1978,8 +2502,8 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
 
     questions_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestquestionpredictions)
 
-    print("Able to predict openness based on individual training questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy))
-    print("Able to predict openness based on individual training questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy), file=file_out)
+    print("Able to predict openness based on individual testing questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy))
+    print("Able to predict openness based on individual testing questions using decision tree with %{} accuracy".format(questions_dt_testing_accuracy), file=file_out)
 
     totals_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepredictions)
 
@@ -2000,6 +2524,26 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
 
     print("Able to predict openness based on individual testing preferences using decision tree with %{} accuracy".format(preferences_dt_testing_accuracy))
     print("Able to predict openness based on individual testing preferences using decision tree with %{} accuracy".format(preferences_dt_testing_accuracy), file=file_out)
+
+    pca_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepcapredictions)
+
+    print("Able to predict openness based on individual training questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_training_accuracy))
+    print("Able to predict openness based on individual training questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_training_accuracy), file=file_out)
+
+    pca_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestpcapredictions)
+
+    print("Able to predict openness based on individual testing questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_testing_accuracy))
+    print("Able to predict openness based on individual testing questions after pca without separation of questions using decision tree with %{} accuracy".format(pca_dt_testing_accuracy), file=file_out)
+
+    pcaseparated_dt_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, decisiontreepcaseparatedpredictions)
+
+    print("Able to predict openness based on individual training questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_training_accuracy))
+    print("Able to predict openness based on individual training questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_training_accuracy), file=file_out)
+
+    pcaseparated_dt_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, decisiontreetestpcaseparatedpredictions)
+
+    print("Able to predict openness based on individual testing questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_testing_accuracy))
+    print("Able to predict openness based on individual testing questions after pca with separation of questions using decision tree with %{} accuracy".format(pcaseparated_dt_testing_accuracy), file=file_out)
 
     individual_voting = VotingClassifier(estimators=individual_ens_estimators)
     individual_voting.fit(trainingdatasetquestions, trainingcorrectlabels)
@@ -2045,6 +2589,36 @@ def PredictOpenness(file_out, alltrainingdatasetquestions, alltrainingdatasettot
 
     print("Able to predict openness based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy))
     print("Able to predict openness based on individual testing preferences using ensemble of the above with %{} accuracy".format(preferences_voting_testing_accuracy), file=file_out)
+
+    pca_voting = VotingClassifier(estimators=pca_ens_estimators)
+    pca_voting.fit(pca_trainingdatasetquestions, trainingcorrectlabels)
+    votingpcapredictions = pca_voting.predict(pca_trainingdatasetquestions)
+
+    pac_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, votingpcapredictions)
+
+    print("Able to predict openness based on individual training pca questions using ensemble of the above with %{} accuracy".format(pac_voting_training_accuracy))
+    print("Able to predict openness based on individual training pca questions using ensemble of the above with %{} accuracy".format(pac_voting_training_accuracy), file=file_out)
+
+    votingtestpcapredictions = pca_voting.predict(pca_testingdatasetquestions)
+    pca_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpcapredictions)
+
+    print("Able to predict openness based on individual testing pca questions using ensemble of the above with %{} accuracy".format(pca_voting_testing_accuracy))
+    print("Able to predict openness based on individual testing pca questions using ensemble of the above with %{} accuracy".format(pca_voting_testing_accuracy), file=file_out)
+
+    pcaseparated_voting = VotingClassifier(estimators=pcaseparated_ens_estimators)
+    pcaseparated_voting.fit(pca_trainingdatasetquestionsseparated, trainingcorrectlabels)
+    votingpcaseparatedpredictions = pcaseparated_voting.predict(pca_trainingdatasetquestionsseparated)
+
+    pacseparated_voting_training_accuracy = metrics.accuracy_score(trainingcorrectlabels, votingpcaseparatedpredictions)
+
+    print("Able to predict openness based on individual training pca separated questions using ensemble of the above with %{} accuracy".format(pacseparated_voting_training_accuracy))
+    print("Able to predict openness based on individual training pca separated questions using ensemble of the above with %{} accuracy".format(pacseparated_voting_training_accuracy), file=file_out)
+
+    votingtestpcaseparatedpredictions = pcaseparated_voting.predict(pca_testingdatasetquestionsseparated)
+    pcaseparated_voting_testing_accuracy = metrics.accuracy_score(testingcorrectlabels, votingtestpcaseparatedpredictions)
+
+    print("Able to predict openness based on individual testing pca separated questions using ensemble of the above with %{} accuracy".format(pcaseparated_voting_testing_accuracy))
+    print("Able to predict openness based on individual testing pca separated questions using ensemble of the above with %{} accuracy".format(pcaseparated_voting_testing_accuracy), file=file_out)
 
     return
 
@@ -4323,86 +4897,104 @@ def main():
 
     print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
-    file_out = open("dataoutput.txt", "w")
-
+    file_out = open("PredictExtroversiondataoutput.txt", "w")
     PredictExtroversion(file_out, trainingdataset, datasettotals_training, datasetpreferences_training, testdataset, datasettotals_testing, datasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictNeuroticismdataoutput.txt", "w")
     PredictNeuroticism(file_out, trainingdataset, datasettotals_training, datasetpreferences_training, testdataset, datasettotals_testing, datasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictAgreeablenessdataoutput.txt", "w")
     PredictAgreeableness(file_out, trainingdataset, datasettotals_training, datasetpreferences_training, testdataset, datasettotals_testing, datasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictConscientiousnessdataoutput.txt", "w")
     PredictConscientiousness(file_out, trainingdataset, datasettotals_training, datasetpreferences_training, testdataset, datasettotals_testing, datasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictOpennessdataoutput.txt", "w")
     PredictOpenness(file_out, trainingdataset, datasettotals_training, datasetpreferences_training, testdataset, datasettotals_testing, datasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
 
+    file_out = open("PredictBasedOnExtroversiondataoutput.txt", "w")
     PredictBasedOnExtroversion(file_out, trainingdataset, datasettotals_training, datasetpreferences_training, testdataset, datasettotals_testing, datasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnNeuroticismdataoutput.txt", "w")
     PredictBasedOnNeuroticism(file_out, trainingdataset, datasettotals_training, datasetpreferences_training, testdataset, datasettotals_testing, datasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnAgreeablenessdataoutput.txt", "w")
     PredictBasedOnAgreeableness(file_out, trainingdataset, datasettotals_training, datasetpreferences_training, testdataset, datasettotals_testing, datasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnConscientiousnessdataoutput.txt", "w")
     PredictBasedOnConscientiousness(file_out, trainingdataset, datasettotals_training, datasetpreferences_training, testdataset, datasettotals_testing, datasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnOpennessdataoutput.txt", "w")
     PredictBasedOnOpenness(file_out, trainingdataset, datasettotals_training, datasetpreferences_training, testdataset, datasettotals_testing, datasetpreferences_testing)
-    print("\n", file=file_out)
-
     file_out.close()
 
     print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
-    file_out = open("cleandataoutput.txt", "w")
-
+    file_out = open("PredictExtroversioncleandataoutput.txt", "w")
     PredictExtroversion(file_out, cleandataset_training, cleandatasettotals_training, cleaneddatasetpreferences_training, cleandataset_testing, cleandatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictNeuroticismcleandataoutput.txt", "w")
     PredictNeuroticism(file_out, cleandataset_training, cleandatasettotals_training, cleaneddatasetpreferences_training, cleandataset_testing, cleandatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictAgreeablenesscleandataoutput.txt", "w")
     PredictAgreeableness(file_out, cleandataset_training, cleandatasettotals_training, cleaneddatasetpreferences_training, cleandataset_testing, cleandatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictConscientiousnesscleandataoutput.txt", "w")
     PredictConscientiousness(file_out, cleandataset_training, cleandatasettotals_training, cleaneddatasetpreferences_training, cleandataset_testing, cleandatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictOpennesscleandataoutput.txt", "w")
     PredictOpenness(file_out, cleandataset_training, cleandatasettotals_training, cleaneddatasetpreferences_training, cleandataset_testing, cleandatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
 
+    file_out = open("PredictBasedOnExtroversioncleandataoutput.txt", "w")
     PredictBasedOnExtroversion(file_out, cleandataset_training, cleandatasettotals_training, cleaneddatasetpreferences_training, cleandataset_testing, cleandatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnNeuroticismcleandataoutput.txt", "w")
     PredictBasedOnNeuroticism(file_out, cleandataset_training, cleandatasettotals_training, cleaneddatasetpreferences_training, cleandataset_testing, cleandatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnAgreeablenesscleandataoutput.txt", "w")
     PredictBasedOnAgreeableness(file_out, cleandataset_training, cleandatasettotals_training, cleaneddatasetpreferences_training, cleandataset_testing, cleandatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnConscientiousnesscleandataoutput.txt", "w")
     PredictBasedOnConscientiousness(file_out, cleandataset_training, cleandatasettotals_training, cleaneddatasetpreferences_training, cleandataset_testing, cleandatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnOpennesscleandataoutput.txt", "w")
     PredictBasedOnOpenness(file_out, cleandataset_training, cleandatasettotals_training, cleaneddatasetpreferences_training, cleandataset_testing, cleandatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
-
     file_out.close()
 
     print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
-    file_out = open("normalizeddataoutput.txt", "w")
-
+    file_out = open("PredictExtroversionnormalizeddataoutput.txt", "w")
     PredictExtroversion(file_out, normalizeddataset_training, normalizeddatasettotals_training, cleaneddatasetpreferences_training, normalizeddataset_testing, normalizeddatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictNeuroticismnormalizeddataoutput.txt", "w")
     PredictNeuroticism(file_out, normalizeddataset_training, normalizeddatasettotals_training, cleaneddatasetpreferences_training, normalizeddataset_testing, normalizeddatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictAgreeablenessnormalizeddataoutput.txt", "w")
     PredictAgreeableness(file_out, normalizeddataset_training, normalizeddatasettotals_training, cleaneddatasetpreferences_training, normalizeddataset_testing, normalizeddatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictConscientiousnessnormalizeddataoutput.txt", "w")
     PredictConscientiousness(file_out, normalizeddataset_training, normalizeddatasettotals_training, cleaneddatasetpreferences_training, normalizeddataset_testing, normalizeddatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictOpennessnormalizeddataoutput.txt", "w")
     PredictOpenness(file_out, normalizeddataset_training, normalizeddatasettotals_training, cleaneddatasetpreferences_training, normalizeddataset_testing, normalizeddatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
 
+    file_out = open("PredictBasedOnExtroversionnormalizeddataoutput.txt", "w")
     PredictBasedOnExtroversion(file_out, normalizeddataset_training, normalizeddatasettotals_training, cleaneddatasetpreferences_training, normalizeddataset_testing, normalizeddatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnNeuroticismnormalizeddataoutput.txt", "w")
     PredictBasedOnNeuroticism(file_out, normalizeddataset_training, normalizeddatasettotals_training, cleaneddatasetpreferences_training, normalizeddataset_testing, normalizeddatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnAgreeablenessnormalizeddataoutput.txt", "w")
     PredictBasedOnAgreeableness(file_out, normalizeddataset_training, normalizeddatasettotals_training, cleaneddatasetpreferences_training, normalizeddataset_testing, normalizeddatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnConscientiousnessnormalizeddataoutput.txt", "w")
     PredictBasedOnConscientiousness(file_out, normalizeddataset_training, normalizeddatasettotals_training, cleaneddatasetpreferences_training, normalizeddataset_testing, normalizeddatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
+    file_out.close()
+    file_out = open("PredictBasedOnOpennessnormalizeddataoutput.txt", "w")
     PredictBasedOnOpenness(file_out, normalizeddataset_training, normalizeddatasettotals_training, cleaneddatasetpreferences_training, normalizeddataset_testing, normalizeddatasettotals_testing, cleaneddatasetpreferences_testing)
-    print("\n", file=file_out)
-
     file_out.close()
 
     return

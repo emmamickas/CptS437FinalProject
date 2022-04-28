@@ -1,0 +1,64 @@
+Able to predict neuroticism based on extroversion training questions using perceptron with %0.7761194029850746 accuracy
+Able to predict neuroticism based on extroversion training reduced questions using perceptron with %0.6567164179104478 accuracy
+Able to predict neuroticism based on extroversion testing questions using perceptron with %0.5757575757575758 accuracy
+Able to predict neuroticism based on extroversion testing reduced questions using perceptron with %0.7272727272727273 accuracy
+Able to predict neuroticism based on extroversion training questions using stochastic gradient descent with %0.6865671641791045 accuracy
+Able to predict neuroticism based on extroversion training reduced questions using stochastic gradient descent with %0.6567164179104478 accuracy
+Able to predict neuroticism based on extroversion testing questions using stochastic gradient descent with %0.696969696969697 accuracy
+Able to predict neuroticism based on extroversion testing reduced questions using stochastic gradient descent with %0.7272727272727273 accuracy
+Able to predict neuroticism based on extroversion training questions using logistic with %0.8208955223880597 accuracy
+Able to predict neuroticism based on extroversion training reduced questions using logistic with %0.7761194029850746 accuracy
+Able to predict neuroticism based on extroversion testing questions using logistic with %0.6666666666666666 accuracy
+Able to predict neuroticism based on extroversion testing reduced questions using logistic with %0.696969696969697 accuracy
+Able to predict neuroticism based on extroversion training questions using decision tree with %1.0 accuracy
+Able to predict neuroticism based on extroversion training reduced questions using decision tree with %0.8656716417910447 accuracy
+Able to predict neuroticism based on extroversion testing questions using decision tree with %0.45454545454545453 accuracy
+Able to predict neuroticism based on extroversion testing reduced questions using decision tree with %0.5757575757575758 accuracy
+Able to predict agreeableness based on extroversion training questions using perceptron with %0.8507462686567164 accuracy
+Able to predict agreeableness based on extroversion training reduced questions using perceptron with %0.43283582089552236 accuracy
+Able to predict agreeableness based on extroversion testing questions using perceptron with %0.8181818181818182 accuracy
+Able to predict agreeableness based on extroversion testing reduced questions using perceptron with %0.5757575757575758 accuracy
+Able to predict agreeableness based on extroversion training questions using stochastic gradient descent with %0.8507462686567164 accuracy
+Able to predict agreeableness based on extroversion training reduced questions using stochastic gradient descent with %0.6417910447761194 accuracy
+Able to predict agreeableness based on extroversion testing questions using stochastic gradient descent with %0.8181818181818182 accuracy
+Able to predict agreeableness based on extroversion testing reduced questions using stochastic gradient descent with %0.7272727272727273 accuracy
+Able to predict agreeableness based on extroversion training questions using logistic with %0.835820895522388 accuracy
+Able to predict agreeableness based on extroversion training reduced questions using logistic with %0.8507462686567164 accuracy
+Able to predict agreeableness based on extroversion testing questions using logistic with %0.8181818181818182 accuracy
+Able to predict agreeableness based on extroversion testing reduced questions using logistic with %0.8181818181818182 accuracy
+Able to predict agreeableness based on extroversion training questions using decision tree with %1.0 accuracy
+Able to predict agreeableness based on extroversion training reduced questions using decision tree with %0.9104477611940298 accuracy
+Able to predict agreeableness based on extroversion testing questions using decision tree with %0.7272727272727273 accuracy
+Able to predict agreeableness based on extroversion testing reduced questions using decision tree with %0.8787878787878788 accuracy
+Able to predict conscientiousness based on extroversion training questions using perceptron with %0.7164179104477612 accuracy
+Able to predict conscientiousness based on extroversion training reduced questions using perceptron with %0.7164179104477612 accuracy
+Able to predict conscientiousness based on extroversion testing questions using perceptron with %0.5454545454545454 accuracy
+Able to predict conscientiousness based on extroversion testing reduced questions using perceptron with %0.45454545454545453 accuracy
+Able to predict conscientiousness based on extroversion training questions using stochastic gradient descent with %0.6716417910447762 accuracy
+Able to predict conscientiousness based on extroversion training reduced questions using stochastic gradient descent with %0.40298507462686567 accuracy
+Able to predict conscientiousness based on extroversion testing questions using stochastic gradient descent with %0.48484848484848486 accuracy
+Able to predict conscientiousness based on extroversion testing reduced questions using stochastic gradient descent with %0.45454545454545453 accuracy
+Able to predict conscientiousness based on extroversion training questions using logistic with %0.7164179104477612 accuracy
+Able to predict conscientiousness based on extroversion training reduced questions using logistic with %0.6865671641791045 accuracy
+Able to predict conscientiousness based on extroversion testing questions using logistic with %0.5151515151515151 accuracy
+Able to predict conscientiousness based on extroversion testing reduced questions using logistic with %0.5454545454545454 accuracy
+Able to predict conscientiousness based on extroversion training questions using decision tree with %1.0 accuracy
+Able to predict conscientiousness based on extroversion training reduced questions using decision tree with %0.8656716417910447 accuracy
+Able to predict conscientiousness based on extroversion testing questions using decision tree with %0.5757575757575758 accuracy
+Able to predict conscientiousness based on extroversion testing reduced questions using decision tree with %0.3333333333333333 accuracy
+Able to predict openness based on extroversion training questions using perceptron with %0.6567164179104478 accuracy
+Able to predict openness based on extroversion training reduced questions using perceptron with %0.05970149253731343 accuracy
+Able to predict openness based on extroversion testing questions using perceptron with %0.6363636363636364 accuracy
+Able to predict openness based on extroversion testing reduced questions using perceptron with %0.09090909090909091 accuracy
+Able to predict openness based on extroversion training questions using stochastic gradient descent with %0.9552238805970149 accuracy
+Able to predict openness based on extroversion training reduced questions using stochastic gradient descent with %0.9552238805970149 accuracy
+Able to predict openness based on extroversion testing questions using stochastic gradient descent with %0.9090909090909091 accuracy
+Able to predict openness based on extroversion testing reduced questions using stochastic gradient descent with %0.8484848484848485 accuracy
+Able to predict openness based on extroversion training questions using logistic with %0.9402985074626866 accuracy
+Able to predict openness based on extroversion training reduced questions using logistic with %0.9402985074626866 accuracy
+Able to predict openness based on extroversion testing questions using logistic with %0.8787878787878788 accuracy
+Able to predict openness based on extroversion testing reduced questions using logistic with %0.9090909090909091 accuracy
+Able to predict openness based on extroversion training questions using decision tree with %1.0 accuracy
+Able to predict openness based on extroversion training reduced questions using decision tree with %0.9850746268656716 accuracy
+Able to predict openness based on extroversion testing questions using decision tree with %0.7575757575757576 accuracy
+Able to predict openness based on extroversion testing reduced questions using decision tree with %0.7575757575757576 accuracy
