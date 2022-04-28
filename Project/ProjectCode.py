@@ -115,7 +115,7 @@ def ReadInData():
 
     open_file.close()
 
-    dataset = resample(fulldataset, n_samples=100, replace=False) # Get only 10000 samples
+    dataset = resample(fulldataset, n_samples=10000, replace=False) # Get only 10000 samples
     sampledataset, testdataset = train_test_split(dataset, test_size=0.33, random_state=1) # Split into training and testing
 
     print("Done reading in data...")
