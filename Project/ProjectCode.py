@@ -20,6 +20,11 @@ allUsersQuestions = {}
 allQuestions = {}
 allQuestionNames = []
 
+def warn(*args, **kwargs):
+  pass
+import warnings
+warnings.warn = warn
+
 def CleanDataForReading():
     open_file = open('data-final.csv', 'r', encoding='utf-8', newline='')
     file_in = csv.reader(open_file, delimiter = '\t')
